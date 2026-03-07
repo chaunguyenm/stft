@@ -1,99 +1,84 @@
-# Parallel Short-time Fourier Transforms
+# Benchmarking Visualization 
 
-An implentation and analysis of several parallel short-time Fourier transform
-algorithms.
-
-## Description
-
-This project studies the parallel implementations of algorithms that calculate short-time
-Fourier transform, commonly used audio/signal processing. Two algorithms are
-provided: a parallel FFT-based implementation and a quasi-parallel feedforward
-implementation. Each algorithm is parallelized in three ways: shared-memory with
-OpenMP, distributed-memory with MPI, and hybrid distributed-shared-memory with
-OpenMP+MPI.
-
-Benchmarking experimens are conducted on [the Niagara/Teach computing cluster](https://docs.scinet.utoronto.ca/index.php/Teach) and
-[the Trillium computing
-cluster](https://docs.alliancecan.ca/wiki/Trillium_Quickstart). All job scripts
-for profiling and scaling analysis, together with their logs, and some
-basic Python scripts to generate visualization from the job output are provided.
+Simple Python scripts that generate visualizations from benchmarking results.
 
 ## Getting Started
 
-Clone the project.
+### Prerequisites
 
+* [python>=3.11](https://www.python.org/downloads/)
+
+### Installation
+
+1. (Optional) Create a virtual environment
    ```sh
-   git clone https://github.com/chaunguyenm/stft.git
-   cd stft/src
+   python -m venv env
    ```
 
-### Running on a computing cluster
-
-Load all the necessary modules on the cluster.
-
+2. Install necessary Python packages
    ```sh
-   source trilliumcluster
-   ```
-
-### Running locally
-
-Build the Docker image and run a container. Mount the current directory
-to have access to all the code and output on your local machine.
-
-   ```sh
-   docker build -t stft-image ./src
-   docker run -v .:/project -it stft-image bash
+   source env/bin/activate
+   pip install -r requirements.txt
    ```
 
 ## Usage
 
-1. Compile the program. This command will output an executable `main`.
+### Runtime
 
+* Print all options
    ```sh
-   make
+   python plot_timelog.py -h
    ```
 
-Some options are available for compilation and can be used in combination with
-each other:
-
-* `DEBUG=1`: compile in debugging mode
-* `WITH_OMP=1`: compile with OpenMP
-* `WITH_MPI=1`: compile with MPI
-
-You may need to recompile when switching between parallel modes:
-
+* Plot comparison of different algorithms, e.g., show a runtime plot of all
+  algorithms in shared-memory parallel and with weak scaling
    ```sh
-   # Compile with OpenMP
-   make WITH_OMP=1
-
-   # Clean up
-   make clean
-   make distclean
-
-   # Recompile with MPI
-   make WITH_MPI=1
+   python plot_timelog.py -p runtime -l omp -s weak
    ```
 
-   2. Run the program, e.g., compute the short-time Fourier transform of the
-      input signal `in.nc` using 4 MPI processes and the feedforward algorithm
-      and write the result to `out.nc`
-      ```sh
-      mpirun -n 4 ./main -p mpi -a qpff -s -f in.nc -o out.nc 1048576 4096
-      ```
-
-`main` takes two arguments, `num-samples` and `window-size`, in this order. If
-an input file is not provided with `-f` option, the program will generate a real
-signal `signal` of size `num-samples` where `signal[i]=i`. If an input file is
-provided, the signal specified in the file will be used.
-It also requires options for the algorithm `-a` and the parallel scheme `-p`. 
-For detailed usage of `main`, run `main -h`.
-
-3. Verify the results against FFTW
-
+* Plot individual run, e.g., show a speedup plot with hybrid
+  distributed-shared-memory parallel and weak scaling
    ```sh
-   # Compile verifier
-   make verifier WITH_OMP=1
-
-   # Test
-   ./verifier -f in.nc -o out.nc 1048576 4096
+   python plot_timelog.py -p speedup -l hybrid -s weak -i ../logs/scaling/niagara/weak-scaling/1-number/timelog_2467
    ```
+
+### Memory
+
+* Print all options
+   ```sh
+   python plot_memlog.py -h
+   ```
+
+* Plot comparison of different algorithms, e.g., show a memory plot of all
+  algorithms in distributed-memory parallel and with weak scaling
+   ```sh
+   python plot_memlog.py -l mpi -s weak
+   ```
+
+* Plot individual run, e.g., show memory usage over time with shared-memory parallel and strong scaling
+   ```sh
+   python plot_memlog.py -l omp -s strong -i ../logs/scaling/niagara/strong-scaling/memlog_12380
+   ``` 
+
+**Note:**
+
+* `plot_constants.py` defines the input for comparison plots.
+
+* Trillium is the default cluster for comparison plots. To change to Niagara
+  cluster, modify the scripts to import the Niagara constants instead of
+  Trillium constants from `plot_constants.py`.
+
+  For `plot_timelog.py`:
+  ```python
+  from plot_constants import COLOR_CYCLE_SIZE, NIAGARA_TIMELOG_BENCHMARKS as BENCHMARKS
+  ```
+
+  For `plot_memlog.py`:
+  ```python
+  from plot_constants import COLOR_CYCLE_SIZE, NREPEATS, NIAGARA_MEMLOG_BENCHMARKS as BENCHMARKS
+  ```
+
+* For individual plot, the `-l` and `-s` options do not enforce the given parallel
+  level or scaling type on the input directory `-i` but only exist to ensure
+  correct plot type (2D or 3D) and task unit (thread, process, or
+  thread+process).
