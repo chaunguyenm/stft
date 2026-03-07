@@ -1,0 +1,29 @@
+name: test 
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize and update submodules
+      run: git submodule update --init --recursive  
+
+    - name: Build Docker image
+      run: cd src && docker build -t stft . && cd ..
+
+    - name: Run tests 
+      run: |
+          docker run --rm -v $(pwd):/project stft bash -c \
+            "cd /project/src && make clean && make distclean && \
+            make test WITH_OMP=1 WITH_MPI=1"
