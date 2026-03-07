@@ -1,0 +1,60 @@
+rm -f *.o gtest.a gtest_main.a
+rm -f stft_unittest main verifier
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g  -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -o main.o main.cc
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from main.cc:14:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g  -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -o stft.o stft.cc	
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from stft.cc:5:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -DWITH_MPI -std=c++17 -g  -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -I./include -I/usr/local/include -L/usr/local/lib main.o stft.o stft_io.o -lnetcdf_c++4 -lnetcdf -o main
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 3 with PID 1126284 on node teach58 exited on signal 9 (Killed).
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 1126408 on node teach58 exited on signal 9 (Killed).
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 1126605 on node teach58 exited on signal 9 (Killed).
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 1 with PID 1126847 on node teach58 exited on signal 9 (Killed).
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 7 with PID 1127049 on node teach58 exited on signal 9 (Killed).
+--------------------------------------------------------------------------

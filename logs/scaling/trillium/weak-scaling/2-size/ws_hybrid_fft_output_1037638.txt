@@ -1,0 +1,236 @@
+rm -f *.o gtest.a gtest_main.a
+rm -f stft_unittest main verifier
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -DWITH_OMP -fopenmp -o main.o main.cc
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from main.cc:14:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -DWITH_OMP -fopenmp -o stft.o stft.cc	
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from stft.cc:5:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -DWITH_OMP -o stft_io.o stft_io.cc		
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncFile.h:2,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/netcdf:16,
+                 from stft_io.cc:3:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncGroup.h:18:14: warning: ‘netCDF::file_id’ defined but not used [-Wunused-variable]
+   18 |   static int file_id;
+      |              ^~~~~~~
+mpicxx -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -DWITH_OMP -fopenmp -I./include -I/usr/local/include -L/usr/local/lib main.o stft.o stft_io.o -lnetcdf_c++4 -lnetcdf -o main
+
+scontrol show job 1037638
+JobId=1037638 JobName=ws_hybrid_fft
+   UserId=chaung(3147989) GroupId=chaung(3147989) MCS_label=N/A
+   Priority=782493 Nice=0 Account=def-mponce-ac QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:20:00 TimeLimit=00:30:00 TimeMin=N/A
+   SubmitTime=2026-02-20T10:29:59 EligibleTime=2026-02-20T10:29:59
+   AccrueTime=2026-02-20T10:29:59
+   StartTime=2026-02-20T11:03:03 EndTime=2026-02-20T11:23:03 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-02-20T11:03:03 Scheduler=Main
+   Partition=compute AllocNode:Sid=tri-login04:3069042
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=tri[0022,0097,0349,0418,0471,0623,0832-0833]
+   BatchHost=tri0022
+   NumNodes=8 NumCPUs=1536 NumTasks=8 CPUs/Task=192 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=1536,mem=6136000M,node=8,billing=1536
+   AllocTRES=cpu=1536,mem=6136000M,node=8,billing=1536
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=192 MinMemoryNode=767000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/scratch/chaung/project/src/scaling/weak-scaling/dft-size/jobscript-ws-hybrid-fft.sh
+   WorkDir=/scratch/chaung/project/src
+   Comment=/opt/slurm/bin/sbatch --export=NONE scaling/weak-scaling/dft-size/jobscript-ws-hybrid-fft.sh 
+   StdErr=/scratch/chaung/project/src/ws_hybrid_fft_output_1037638.txt
+   StdIn=/dev/null
+   StdOut=/scratch/chaung/project/src/ws_hybrid_fft_output_1037638.txt
+   TresPerTask=cpu=192
+   MailUser=chaung@scinet.local MailType=FAIL
+   
+
+sacct -j 1037638
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+1037638      ws_hybrid+ def-mponc+   00:20:00                        17:03.163   01:48:53      0:0 
+1037638.bat+      batch def-mponc+   00:20:00                         00:00:00   00:00:00      0:0 
+1037638.ext+     extern def-mponc+   00:20:00                         00:00:00   00:00:00      0:0 
+1037638.0          bash def-mponc+   00:00:32          0 120295928K  01:32.010  06:57.417      0:0 
+1037638.1          bash def-mponc+   00:00:29          0         8M  01:32.553  07:01.565      0:0 
+1037638.2          bash def-mponc+   00:00:28          0      5428K  01:29.849  07:07.565      0:0 
+1037638.3          bash def-mponc+   00:00:30          0     13440K  01:32.618  07:19.187      0:0 
+1037638.4          bash def-mponc+   00:00:28          0     12404K  01:31.049  07:05.212      0:0 
+1037638.5          bash def-mponc+   00:00:13          0      9084K  00:29.769  02:57.187      0:0 
+1037638.6          bash def-mponc+   00:00:13          0      6372K  00:29.497  03:05.284      0:0 
+1037638.7          bash def-mponc+   00:00:13          0      6.50M  00:30.385  02:55.817      0:0 
+1037638.8          bash def-mponc+   00:00:15          0      5844K  00:30.617  03:12.758      0:0 
+1037638.9          bash def-mponc+   00:00:14          0      4432K  00:29.861  02:55.635      0:0 
+1037638.10         bash def-mponc+   00:00:09          0      7356K  00:15.448  01:26.369      0:0 
+1037638.11         bash def-mponc+   00:00:09          0      6416K  00:16.049  01:26.421      0:0 
+1037638.12         bash def-mponc+   00:00:10          0      7468K  00:15.719  01:25.820      0:0 
+1037638.13         bash def-mponc+   00:00:12          0      5900K  00:15.714  01:28.881      0:0 
+1037638.14         bash def-mponc+   00:00:09          0      6172K  00:15.516  01:26.012      0:0 
+1037638.15         bash def-mponc+   00:00:04          0      4160K  00:07.477  00:40.402      0:0 
+1037638.16         bash def-mponc+   00:00:05          0      3760K  00:07.307  00:39.652      0:0 
+1037638.17         bash def-mponc+   00:00:05          0      3668K  00:07.047  00:39.989      0:0 
+1037638.18         bash def-mponc+   00:00:04          0      3804K  00:07.523  00:39.771      0:0 
+1037638.19         bash def-mponc+   00:00:05          0      3768K  00:07.437  00:39.614      0:0 
+1037638.20         bash def-mponc+   00:00:03          0      3028K  00:04.082  00:19.498      0:0 
+1037638.21         bash def-mponc+   00:00:05          0      2284K  00:04.190  00:18.673      0:0 
+1037638.22         bash def-mponc+   00:00:03          0      3616K  00:04.166  00:19.204      0:0 
+1037638.23         bash def-mponc+   00:00:04          0      3572K  00:04.092  00:19.212      0:0 
+1037638.24         bash def-mponc+   00:00:03          0      3732K  00:04.114  00:19.315      0:0 
+1037638.25         bash def-mponc+   00:00:03          0      2936K  00:02.444  00:09.714      0:0 
+1037638.26         bash def-mponc+   00:00:02          0      3480K  00:02.507  00:09.563      0:0 
+1037638.27         bash def-mponc+   00:00:03          0      3416K  00:02.418  00:09.591      0:0 
+1037638.28         bash def-mponc+   00:00:02          0      3220K  00:02.456  00:09.511      0:0 
+1037638.29         bash def-mponc+   00:00:03          0      2888K  00:02.421  00:09.529      0:0 
+1037638.30         bash def-mponc+   00:00:01          0      3368K  00:01.575  00:04.938      0:0 
+1037638.31         bash def-mponc+   00:00:02          0      3036K  00:01.546  00:04.824      0:0 
+1037638.32         bash def-mponc+   00:00:01          0      3028K  00:01.551  00:04.853      0:0 
+1037638.33         bash def-mponc+   00:00:03          0      3036K  00:01.542  00:04.827      0:0 
+1037638.34         bash def-mponc+   00:00:01          0      2860K  00:01.612  00:04.675      0:0 
+1037638.35         bash def-mponc+   00:00:01          0      3168K  00:01.205  00:02.570      0:0 
+1037638.36         bash def-mponc+   00:00:01          0      2852K  00:01.166  00:02.573      0:0 
+1037638.37         bash def-mponc+   00:00:01          0      3160K  00:01.194  00:02.527      0:0 
+1037638.38         bash def-mponc+   00:00:02          0      3144K  00:01.134  00:02.549      0:0 
+1037638.39         bash def-mponc+   00:00:01          0      3388K  00:01.197  00:02.576      0:0 
+1037638.40         bash def-mponc+   00:00:12          0     10256K  00:18.690  03:01.935      0:0 
+1037638.41         bash def-mponc+   00:00:12          0      3288K  00:19.129  03:01.163      0:0 
+1037638.42         bash def-mponc+   00:00:13          0     10204K  00:17.737  03:06.167      0:0 
+1037638.43         bash def-mponc+   00:00:12          0      4100K  00:18.757  03:01.486      0:0 
+1037638.44         bash def-mponc+   00:00:12          0      7904K  00:18.124  03:03.148      0:0 
+1037638.45         bash def-mponc+   00:00:08          0      8900K  00:09.575  01:17.897      0:0 
+1037638.46         bash def-mponc+   00:00:08          0     10412K  00:10.303  01:17.952      0:0 
+1037638.47         bash def-mponc+   00:00:08          0      9600K  00:08.825  01:17.968      0:0 
+1037638.48         bash def-mponc+   00:00:08          0     10344K  00:09.267  01:18.216      0:0 
+1037638.49         bash def-mponc+   00:00:09          0     10508K  00:09.293  01:18.966      0:0 
+1037638.50         bash def-mponc+   00:00:05          0      1764K  00:03.916  00:35.090      0:0 
+1037638.51         bash def-mponc+   00:00:05          0      4824K  00:04.027  00:34.202      0:0 
+1037638.52         bash def-mponc+   00:00:04          0      4804K  00:03.892  00:33.959      0:0 
+1037638.53         bash def-mponc+   00:00:05          0      5260K  00:03.914  00:33.674      0:0 
+1037638.54         bash def-mponc+   00:00:05          0      5316K  00:04.011  00:33.643      0:0 
+1037638.55         bash def-mponc+   00:00:03          0      4756K  00:02.299  00:16.909      0:0 
+1037638.56         bash def-mponc+   00:00:03          0      4456K  00:02.161  00:15.912      0:0 
+1037638.57         bash def-mponc+   00:00:03          0      4396K  00:02.212  00:15.940      0:0 
+1037638.58         bash def-mponc+   00:00:04          0      5176K  00:02.116  00:16.070      0:0 
+1037638.59         bash def-mponc+   00:00:02          0      4484K  00:02.234  00:16.183      0:0 
+1037638.60         bash def-mponc+   00:00:03          0      3920K  00:01.167  00:07.754      0:0 
+1037638.61         bash def-mponc+   00:00:02          0      3512K  00:01.289  00:07.648      0:0 
+1037638.62         bash def-mponc+   00:00:03          0      4884K  00:01.212  00:07.758      0:0 
+1037638.63         bash def-mponc+   00:00:02          0      3960K  00:01.315  00:07.691      0:0 
+1037638.64         bash def-mponc+   00:00:03          0      4184K  00:01.284  00:07.765      0:0 
+1037638.65         bash def-mponc+   00:00:01          0      2736K  00:00.816  00:03.730      0:0 
+1037638.66         bash def-mponc+   00:00:02          0         3M  00:00.802  00:03.810      0:0 
+1037638.67         bash def-mponc+   00:00:02          0      3076K  00:00.849  00:04.209      0:0 
+1037638.68         bash def-mponc+   00:00:01          0      2920K  00:00.814  00:03.778      0:0 
+1037638.69         bash def-mponc+   00:00:02          0      2772K  00:00.826  00:03.832      0:0 
+1037638.70         bash def-mponc+   00:00:01          0      2936K  00:00.605  00:01.890      0:0 
+1037638.71         bash def-mponc+   00:00:03          0      1776K  00:00.596  00:01.874      0:0 
+1037638.72         bash def-mponc+   00:00:02          0      2976K  00:00.580  00:01.924      0:0 
+1037638.73         bash def-mponc+   00:00:01          0      2852K  00:00.574  00:01.910      0:0 
+1037638.74         bash def-mponc+   00:00:02          0      3576K  00:00.593  00:01.906      0:0 
+1037638.75         bash def-mponc+   00:00:01          0      3172K  00:00.499  00:01.096      0:0 
+1037638.76         bash def-mponc+   00:00:02          0      1896K  00:00.506  00:01.089      0:0 
+1037638.77         bash def-mponc+   00:00:01          0      2312K  00:00.527  00:01.071      0:0 
+1037638.78         bash def-mponc+   00:00:02          0      2756K  00:00.516  00:01.077      0:0 
+1037638.79         bash def-mponc+   00:00:01          0      2472K  00:00.501  00:01.095      0:0 
+1037638.80         bash def-mponc+   00:00:07          0     16876K  00:05.922  01:24.554      0:0 
+1037638.81         bash def-mponc+   00:00:06          0     18960K  00:05.982  01:23.041      0:0 
+1037638.82         bash def-mponc+   00:00:07          0     18516K  00:05.641  01:23.563      0:0 
+1037638.83         bash def-mponc+   00:00:07          0     19308K  00:05.887  01:23.134      0:0 
+1037638.84         bash def-mponc+   00:00:08          0     19300K  00:05.771  01:27.133      0:0 
+1037638.85         bash def-mponc+   00:00:04          0      6628K  00:01.805  00:33.013      0:0 
+1037638.86         bash def-mponc+   00:00:06          0      5780K  00:02.080  00:33.117      0:0 
+1037638.87         bash def-mponc+   00:00:03          0      1300K  00:01.978  00:33.175      0:0 
+1037638.88         bash def-mponc+   00:00:04          0      2688K  00:01.916  00:34.789      0:0 
+1037638.89         bash def-mponc+   00:00:03          0      6852K  00:01.942  00:33.130      0:0 
+1037638.90         bash def-mponc+   00:00:03          0      6188K  00:01.048  00:14.520      0:0 
+1037638.91         bash def-mponc+   00:00:02          0      6308K  00:00.986  00:14.462      0:0 
+1037638.92         bash def-mponc+   00:00:03          0      7036K  00:00.989  00:14.429      0:0 
+1037638.93         bash def-mponc+   00:00:02          0      7244K  00:00.998  00:14.518      0:0 
+1037638.94         bash def-mponc+   00:00:03          0      5896K  00:01.012  00:14.413      0:0 
+1037638.95         bash def-mponc+   00:00:01          0      5152K  00:00.560  00:06.799      0:0 
+1037638.96         bash def-mponc+   00:00:02          0      5076K  00:00.596  00:06.730      0:0 
+1037638.97         bash def-mponc+   00:00:01          0      4904K  00:00.592  00:06.803      0:0 
+1037638.98         bash def-mponc+   00:00:02          0      4408K  00:00.580  00:06.802      0:0 
+1037638.99         bash def-mponc+   00:00:01          0      4920K  00:00.559  00:06.791      0:0 
+1037638.100        bash def-mponc+   00:00:02          0      3820K  00:00.393  00:03.294      0:0 
+1037638.101        bash def-mponc+   00:00:01          0      3672K  00:00.393  00:03.634      0:0 
+1037638.102        bash def-mponc+   00:00:02          0      3588K  00:00.387  00:03.284      0:0 
+1037638.103        bash def-mponc+   00:00:01          0      3668K  00:00.396  00:03.268      0:0 
+1037638.104        bash def-mponc+   00:00:03          0      3580K  00:00.380  00:03.266      0:0 
+1037638.105        bash def-mponc+   00:00:02          0      3276K  00:00.281  00:01.618      0:0 
+1037638.106        bash def-mponc+   00:00:01          0      2988K  00:00.288  00:01.609      0:0 
+1037638.107        bash def-mponc+   00:00:02          0      2844K  00:00.283  00:01.609      0:0 
+1037638.108        bash def-mponc+   00:00:01          0      2872K  00:00.284  00:01.604      0:0 
+1037638.109        bash def-mponc+   00:00:02          0      2776K  00:00.296  00:01.700      0:0 
+1037638.110        bash def-mponc+   00:00:01          0      2160K  00:00.240  00:00.817      0:0 
+1037638.111        bash def-mponc+   00:00:01          0      2088K  00:00.231  00:00.811      0:0 
+1037638.112        bash def-mponc+   00:00:02          0      1648K  00:00.243  00:00.809      0:0 
+1037638.113        bash def-mponc+   00:00:01          0      3116K  00:00.245  00:00.826      0:0 
+1037638.114        bash def-mponc+   00:00:02          0      2424K  00:00.256  00:00.808      0:0 
+1037638.115        bash def-mponc+   00:00:01          0      2432K  00:00.202  00:00.447      0:0 
+1037638.116        bash def-mponc+   00:00:02          0      2260K  00:00.224  00:00.423      0:0 
+1037638.117        bash def-mponc+   00:00:01          0      1784K  00:00.212  00:00.439      0:0 
+1037638.118        bash def-mponc+   00:00:01          0      2508K  00:00.211  00:00.436      0:0 
+1037638.119        bash def-mponc+   00:00:01          0      2120K  00:00.213  00:00.433      0:0 
+1037638.120        bash def-mponc+   00:00:03          0     12372K  00:01.376  00:38.040      0:0 
+1037638.121        bash def-mponc+   00:00:02          0     12884K  00:01.314  00:38.265      0:0 
+1037638.122        bash def-mponc+   00:00:03          0     12224K  00:01.107  00:38.122      0:0 
+1037638.123        bash def-mponc+   00:00:02          0     13056K  00:01.228  00:38.129      0:0 
+1037638.124        bash def-mponc+   00:00:03          0     13036K  00:01.145  00:38.286      0:0 
+1037638.125        bash def-mponc+   00:00:02          0     10284K  00:00.620  00:14.811      0:0 
+1037638.126        bash def-mponc+   00:00:03          0     11428K  00:00.562  00:14.817      0:0 
+1037638.127        bash def-mponc+   00:00:02          0     11920K  00:00.568  00:14.827      0:0 
+1037638.128        bash def-mponc+   00:00:03          0     11756K  00:00.521  00:14.845      0:0 
+1037638.129        bash def-mponc+   00:00:02          0     11936K  00:00.540  00:14.826      0:0 
+1037638.130        bash def-mponc+   00:00:01          0      8636K  00:00.316  00:06.447      0:0 
+1037638.131        bash def-mponc+   00:00:02          0      7352K  00:00.265  00:06.508      0:0 
+1037638.132        bash def-mponc+   00:00:01          0      8400K  00:00.316  00:06.501      0:0 
+1037638.133        bash def-mponc+   00:00:02          0      8476K  00:00.342  00:06.463      0:0 
+1037638.134        bash def-mponc+   00:00:01          0      7896K  00:00.317  00:06.484      0:0 
+1037638.135        bash def-mponc+   00:00:02          0      5500K  00:00.200  00:03.071      0:0 
+1037638.136        bash def-mponc+   00:00:03          0      5012K  00:00.209  00:03.082      0:0 
+1037638.137        bash def-mponc+   00:00:02          0      5304K  00:00.210  00:03.083      0:0 
+1037638.138        bash def-mponc+   00:00:01          0      5884K  00:00.239  00:03.064      0:0 
+1037638.139        bash def-mponc+   00:00:02          0      5076K  00:00.230  00:03.068      0:0 
+1037638.140        bash def-mponc+   00:00:01          0      2856K  00:00.161  00:01.498      0:0 
+1037638.141        bash def-mponc+   00:00:02          0      3788K  00:00.137  00:01.488      0:0 
+1037638.142        bash def-mponc+   00:00:01          0      3488K  00:00.166  00:01.469      0:0 
+1037638.143        bash def-mponc+   00:00:02          0      3392K  00:00.163  00:01.477      0:0 
+1037638.144        bash def-mponc+   00:00:03          0      3592K  00:00.164  00:01.480      0:0 
+1037638.145        bash def-mponc+   00:00:01          0      2460K  00:00.139  00:00.712      0:0 
+1037638.146        bash def-mponc+   00:00:02          0      2680K  00:00.131  00:00.725      0:0 
+1037638.147        bash def-mponc+   00:00:01          0      2720K  00:00.130  00:00.718      0:0 
+1037638.148        bash def-mponc+   00:00:01          0      2900K  00:00.138  00:00.720      0:0 
+1037638.149        bash def-mponc+   00:00:02          0      3056K  00:00.131  00:00.727      0:0 
+1037638.150        bash def-mponc+   00:00:01          0      3236K  00:00.115  00:00.361      0:0 
+1037638.151        bash def-mponc+   00:00:02          0      2132K  00:00.114  00:00.364      0:0 
+1037638.152        bash def-mponc+   00:00:01          0      3132K  00:00.120  00:00.354      0:0 
+1037638.153        bash def-mponc+   00:00:02          0      3028K  00:00.113  00:00.352      0:0 
+1037638.154        bash def-mponc+   00:00:01          0      2916K  00:00.120  00:00.359      0:0 
+1037638.155        bash def-mponc+   00:00:02          0      2824K  00:00.098  00:00.190      0:0 
+1037638.156        bash def-mponc+   00:00:01          0      2524K  00:00.103  00:00.185      0:0 
+1037638.157        bash def-mponc+   00:00:01          0      3064K  00:00.100  00:00.183      0:0 
+1037638.158        bash def-mponc+   00:00:03          0      2212K  00:00.104  00:00.184      0:0 
+1037638.159        bash def-mponc+   00:00:01          0      2692K  00:00.099  00:00.184      0:0 
+
+
+kernel messages produced during job executions:
+[Feb20 11:03] hugetlbfs: main (9319): Using mlock ulimits for SHM_HUGETLB is obsolete
+

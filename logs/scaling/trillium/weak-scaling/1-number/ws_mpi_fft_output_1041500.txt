@@ -1,0 +1,72 @@
+rm -f *.o gtest.a gtest_main.a
+rm -f stft_unittest main verifier
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o main.o main.cc
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from main.cc:14:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o stft.o stft.cc	
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from stft.cc:5:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -o stft_io.o stft_io.cc		
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncFile.h:2,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/netcdf:16,
+                 from stft_io.cc:3:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncGroup.h:18:14: warning: ‘netCDF::file_id’ defined but not used [-Wunused-variable]
+   18 |   static int file_id;
+      |              ^~~~~~~
+mpicxx -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -I./include -I/usr/local/include -L/usr/local/lib main.o stft.o stft_io.o -lnetcdf_c++4 -lnetcdf -o main
+
+scontrol show job 1041500
+JobId=1041500 JobName=ws_mpi_fft
+   UserId=chaung(3147989) GroupId=chaung(3147989) MCS_label=N/A
+   Priority=791709 Nice=0 Account=def-mponce-ac QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:03:08 TimeLimit=00:15:00 TimeMin=N/A
+   SubmitTime=2026-02-21T12:41:57 EligibleTime=2026-02-21T12:41:57
+   AccrueTime=2026-02-21T12:41:57
+   StartTime=2026-02-21T12:55:51 EndTime=2026-02-21T12:58:59 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-02-21T12:55:51 Scheduler=Backfill
+   Partition=compute AllocNode:Sid=tri-login03:603907
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=tri0107
+   BatchHost=tri0107
+   NumNodes=1 NumCPUs=192 NumTasks=8 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=8,mem=767000M,node=1,billing=8
+   AllocTRES=cpu=192,mem=767000M,node=1,billing=192
+   Socks/Node=* NtasksPerN:B:S:C=8:0:*:* CoreSpec=*
+   MinCPUsNode=8 MinMemoryNode=767000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/scratch/chaung/project/src/scaling/weak-scaling/num-dft/jobscript-ws-mpi-fft-innode.sh
+   WorkDir=/scratch/chaung/project/src
+   Comment=/opt/slurm/bin/sbatch --export=NONE scaling/weak-scaling/num-dft/jobscript-ws-mpi-fft-innode.sh 
+   StdErr=/scratch/chaung/project/src/ws_mpi_fft_output_1041500.txt
+   StdIn=/dev/null
+   StdOut=/scratch/chaung/project/src/ws_mpi_fft_output_1041500.txt
+   TresPerTask=cpu=1
+   MailUser=chaung@scinet.local MailType=FAIL
+   
+
+sacct -j 1041500
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+1041500      ws_mpi_fft def-mponc+   00:03:08                         00:00:00   00:00:00      0:0 
+1041500.bat+      batch def-mponc+   00:03:08                         00:00:00   00:00:00      0:0 
+1041500.ext+     extern def-mponc+   00:03:08                         00:00:00   00:00:00      0:0 
+

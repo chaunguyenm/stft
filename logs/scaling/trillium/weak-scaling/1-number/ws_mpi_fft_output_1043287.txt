@@ -1,0 +1,92 @@
+rm -f *.o gtest.a gtest_main.a
+rm -f stft_unittest main verifier
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o main.o main.cc
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from main.cc:14:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o stft.o stft.cc	
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/mpicxx.h:277,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/mpi.h:2907,
+                 from stft.cc:5:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h: In member function ‘virtual void MPI::Op::Init(void (*)(const void*, void*, int, const MPI::Datatype&), bool)’:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:121:25: warning: cast between incompatible function types from ‘void (*)(void*, void*, int*, ompi_datatype_t**, void (*)(void*, void*, int*, ompi_datatype_t**))’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  121 |     (void)MPI_Op_create((MPI_User_function*) ompi_mpi_cxx_op_intercept,
+      |                         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/openmpi/4.1.5/include/openmpi/ompi/mpi/cxx/op_inln.h:123:38: warning: cast between incompatible function types from ‘void (*)(const void*, void*, int, const MPI::Datatype&)’ to ‘void (*)(void*, void*, int*, ompi_datatype_t**)’ [-Wcast-function-type]
+  123 |     ompi_op_set_cxx_callback(mpi_op, (MPI_User_function*) func);
+      |                                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+mpicxx -I./include -I/usr/local/include -L/usr/local/lib -c -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -o stft_io.o stft_io.cc		
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncFile.h:2,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/netcdf:16,
+                 from stft_io.cc:3:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncGroup.h:18:14: warning: ‘netCDF::file_id’ defined but not used [-Wunused-variable]
+   18 |   static int file_id;
+      |              ^~~~~~~
+mpicxx -DWITH_MPI -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -I./include -I/usr/local/include -L/usr/local/lib main.o stft.o stft_io.o -lnetcdf_c++4 -lnetcdf -o main
+
+scontrol show job 1043287
+JobId=1043287 JobName=ws_mpi_fft
+   UserId=chaung(3147989) GroupId=chaung(3147989) MCS_label=N/A
+   Priority=666063 Nice=0 Account=def-mponce-ac QOS=normal
+   JobState=COMPLETING Reason=None Dependency=(null)
+   Requeue=0 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:08:47 TimeLimit=00:40:00 TimeMin=N/A
+   SubmitTime=2026-02-21T23:07:21 EligibleTime=2026-02-21T23:07:21
+   AccrueTime=2026-02-21T23:07:21
+   StartTime=2026-02-21T23:52:39 EndTime=2026-02-22T00:01:26 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-02-21T23:52:39 Scheduler=Main
+   Partition=compute AllocNode:Sid=tri-login01:151097
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=tri[0724,0728,0730,0733,0740,0767,0777,0780]
+   BatchHost=tri0724
+   NumNodes=8 NumCPUs=1536 NumTasks=8 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=8,mem=6136000M,node=8,billing=8
+   AllocTRES=cpu=1536,mem=6136000M,node=8,billing=1536
+   Socks/Node=* NtasksPerN:B:S:C=1:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=0 MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/scratch/chaung/project/src/scaling/weak-scaling/num-dft/jobscript-ws-mpi-fft-offnode.sh
+   WorkDir=/scratch/chaung/project/src
+   Comment=/opt/slurm/bin/sbatch --export=NONE scaling/weak-scaling/num-dft/jobscript-ws-mpi-fft-offnode.sh 
+   StdErr=/scratch/chaung/project/src/ws_mpi_fft_output_1043287.txt
+   StdIn=/dev/null
+   StdOut=/scratch/chaung/project/src/ws_mpi_fft_output_1043287.txt
+   TresPerTask=cpu=1
+   MailUser=chaung@scinet.local MailType=FAIL
+   
+
+sacct -j 1043287
+JobID           JobName    Account    Elapsed  MaxVMSize     MaxRSS  SystemCPU    UserCPU ExitCode 
+------------ ---------- ---------- ---------- ---------- ---------- ---------- ---------- -------- 
+1043287      ws_mpi_fft def-mponc+   00:08:47                        03:34.365  28:06.047      0:0 
+1043287.bat+      batch def-mponc+   00:08:47                         00:00:00   00:00:00      0:0 
+1043287.ext+     extern def-mponc+   00:08:47                         00:00:00   00:00:00      0:0 
+1043287.0          bash def-mponc+   00:00:14          0      4760K  00:00.548  00:12.214      0:0 
+1043287.1          bash def-mponc+   00:00:13          0      1108K  00:00.608  00:12.176      0:0 
+1043287.2          bash def-mponc+   00:00:14          0      2744K  00:00.585  00:12.242      0:0 
+1043287.3          bash def-mponc+   00:00:14          0      3216K  00:00.583  00:12.174      0:0 
+1043287.4          bash def-mponc+   00:00:13          0      2588K  00:00.599  00:12.141      0:0 
+1043287.5          bash def-mponc+   00:00:17          0      5052K  00:01.865  00:25.655      0:0 
+1043287.6          bash def-mponc+   00:00:15          0      1988K  00:01.874  00:25.674      0:0 
+1043287.7          bash def-mponc+   00:00:14          0       804K  00:01.895  00:25.532      0:0 
+1043287.8          bash def-mponc+   00:00:14          0      1120K  00:02.986  00:25.623      0:0 
+1043287.9          bash def-mponc+   00:00:15          0      2780K  00:01.882  00:25.692      0:0 
+1043287.10         bash def-mponc+   00:00:20          0      6392K  00:07.615  01:02.885      0:0 
+1043287.11         bash def-mponc+   00:00:20          0      1512K  00:07.572  01:03.216      0:0 
+1043287.12         bash def-mponc+   00:00:20          0      2332K  00:07.615  01:02.587      0:0 
+1043287.13         bash def-mponc+   00:00:19          0       688K  00:07.673  01:02.933      0:0 
+1043287.14         bash def-mponc+   00:00:20          0      2204K  00:07.394  01:05.139      0:0 
+1043287.15         bash def-mponc+   00:00:42          0 112521212K  00:31.543  03:42.325      0:0 
+1043287.16         bash def-mponc+   00:00:41          0 112597584K  00:30.730  03:51.331      0:0 
+1043287.17         bash def-mponc+   00:00:46          0 109561448K  00:35.865  04:20.537      0:0 
+1043287.18         bash def-mponc+   00:00:41          0 112447344K  00:30.693  03:32.844      0:0 
+1043287.19         bash def-mponc+   00:00:42          0 111860852K  00:34.231  04:13.117      0:0 
+

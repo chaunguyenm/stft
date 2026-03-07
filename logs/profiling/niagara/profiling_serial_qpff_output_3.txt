@@ -1,0 +1,43 @@
+rm -f *.o gtest.a gtest_main.a
+rm -f stft_unittest main verifier
+g++ -I./include -I/usr/local/include -L/usr/local/lib -c -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o main.o main.cc
+main.cc: In function ‘int main(int, char**)’:
+main.cc:209:13: warning: variable ‘size’ set but not used [-Wunused-but-set-variable]
+  209 |   int rank, size, provided;
+      |             ^~~~
+main.cc:209:19: warning: variable ‘provided’ set but not used [-Wunused-but-set-variable]
+  209 |   int rank, size, provided;
+      |                   ^~~~~~~~
+g++ -I./include -I/usr/local/include -L/usr/local/lib -c -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -o stft.o stft.cc	
+g++ -I./include -I/usr/local/include -L/usr/local/lib -c -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native  -o stft_io.o stft_io.cc		
+In file included from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncFile.h:2,
+                 from /cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/netcdf:16,
+                 from stft_io.cc:3:
+/cvmfs/soft.computecanada.ca/easybuild/software/2023/x86-64-v4/Compiler/gcc12/netcdf-c++4/4.3.1/include/ncGroup.h:18:14: warning: ‘netCDF::file_id’ defined but not used [-Wunused-variable]
+   18 |   static int file_id;
+      |              ^~~~~~~
+g++ -std=c++17 -g -Wall -Wextra -Wno-unknown-pragmas -Wno-sign-compare -O2 -march=native   -I./include -I/usr/local/include -L/usr/local/lib main.o stft.o stft_io.o -lnetcdf_c++4 -lnetcdf -o main
+Linaro Forge 23.1.1 - Linaro MAP
+
+Profiling            : /home/l/lcl_uotcscd71/lcl_uotcscd71s1403/project/src/main -p omp -a qpff -s 1048576 4096
+Linaro Forge sampler : preload
+MPI implementation   : Auto-Detect (Open MPI)
+
+
+MAP analysing program...
+MAP: Process 0: 
+MAP: 
+MAP: No debug symbols were loaded for the glibc library.
+MAP: It is recommended you install the glibc debug symbols.
+MAP gathering samples...
+MAP generated /home/l/lcl_uotcscd71/lcl_uotcscd71s1403/project/src/profiling_serial_qpff_3.map
+MAP generated /home/l/lcl_uotcscd71/lcl_uotcscd71s1403/project/src/profiling_functions_serial_qpff_3.csv
+
+Linaro MAP profiling summary
+============================
+Profiling time:      94 seconds
+Peak process memory: 69018632192 B (~64.3 GiB)
+
+Compute:             100.0%    (93.9s) |=========|
+MPI:                   0.0%     (0.0s) |
+I/O:                   0.0%     (0.0s) |
