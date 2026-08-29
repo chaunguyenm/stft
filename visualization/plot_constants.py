@@ -1,4 +1,4 @@
-COLOR_CYCLE_SIZE = 7
+COLOR_CYCLE_SIZE = 8
 NREPEATS = 5
 
 # Input directories. For weak scaling, [1] is by number of Fourier transforms,

@@ -94,6 +94,26 @@ def prepare_data(input_dir: str, parallel_level: str, verbose: bool) -> dict:
     return data
 
 
+def compute_limits(data: dict, verbose: bool) -> dict:
+    limits = defaultdict(list)
+    ks = sorted(data.keys())
+    if len(ks) < 1:
+        return limits
+    if isinstance(ks[0], int):
+        limits['xlim'] = [ks[0], ks[-1]]
+        if verbose:
+            print(f'Limits of tasks:')
+            print(f'\txlim=[{ks[0]},{ks[-1]}]')
+    else:
+        limits['xlim'] = [ks[0][0], ks[-1][0]]
+        limits['ylim'] = [ks[0][1], ks[-1][-1]]
+        if verbose:
+            print(f'Limits of tasks:')
+            print(
+                f'\txlim=[{ks[0][0]},{ks[-1][0]}], ylim=[{ks[0][1]},{ks[-1][-1]}]')
+    return limits
+
+
 def compute_stats(data: dict, verbose: bool) -> tuple[list[int | tuple[int, int]], np.ndarray, np.ndarray]:
     """
     Compute statistics for data, return means and standard deviations and
@@ -140,6 +160,15 @@ def create_figure(plot_type: str, parallel_level: str) -> tuple[plt.Figure, plt.
     return fig, ax
 
 
+def set_axis_limit(ax: plt.Axes, xlim: list[int] | None = None, ylim: list[int] | None = None, zlim: list[int] | None = None) -> None:
+    if xlim is not None and len(xlim) == 2:
+        ax.set_xlim(left=xlim[0], right=xlim[1])
+    if ylim is not None and len(ylim) == 2:
+        ax.set_ylim(bottom=ylim[0], top=ylim[1])
+    if zlim is not None and len(zlim) == 2:
+        ax.set_zlim(bottom=zlim[0], top=zlim[1])
+
+
 def plot_ideal_2d(scaling_type: str, ax: plt.Axes, tasks: list[int]) -> None:
     """Plot the ideal speedup in 2D based on scaling_type.
     """
@@ -179,6 +208,7 @@ def plot_all_2d(parallel_level: str, scaling_type: str, plot_type: str,
     for directory, label in zip(dirs, labels):
         # Compute all necessary data
         data = prepare_data(directory, parallel_level, verbose)
+        limits = compute_limits(data, verbose)
         tasks, means, stds = compute_stats(data, verbose)
         speedup = compute_speedup(tasks, means, 1, verbose)
 
@@ -187,6 +217,7 @@ def plot_all_2d(parallel_level: str, scaling_type: str, plot_type: str,
 
         # Plot
         color = get_color()
+        set_axis_limit(ax, xlim=limits['xlim'])
         plot_one_2d(plot_type, ax, color, data, tasks, means, stds, speedup)
         patches.append(Patch(facecolor=color, label=label))
 
@@ -274,6 +305,7 @@ def plot_all_3d(parallel_level: str, scaling_type: str, plot_type: str,
     for directory, label in zip(dirs, labels):
         # Compute all necessary data
         data = prepare_data(directory, parallel_level, verbose)
+        limits = compute_limits(data, verbose)
         tasks, means, stds = compute_stats(data, verbose)
         speedup = compute_speedup(tasks, means, (1, 1), verbose)
 
@@ -283,6 +315,7 @@ def plot_all_3d(parallel_level: str, scaling_type: str, plot_type: str,
 
         # Plot
         color = get_color()
+        set_axis_limit(ax, xlim=limits['xlim'], ylim=limits['ylim'])
         plot_one_3d(plot_type, ax, color, data, tasks, means, stds, speedup)
         patches.append(Patch(facecolor=color, label=label))
 
