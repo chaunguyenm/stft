@@ -1,0 +1,69 @@
+Command:        /scratch/chaung/project/src/main -p omp -a qpff -s 1048576 4096
+Resources:      1 node (192 physical, 192 logical cores per node)
+Memory:         755 GiB per node
+Tasks:          1 process, OMP_NUM_THREADS was 40
+Machine:        tri0381
+Architecture:   x86_64
+CPU Family:     <unknown>
+Start time:     Mon. Dec. 29 13:59:45 2025
+Total time:     16 seconds
+Full path:      /scratch/chaung/project/src
+
+Summary: main is Compute-bound in this configuration
+Compute:                                    100.0%    (15.0s) |=========|
+MPI:                                          0.0%     (0.0s) |
+I/O:                                          0.0%     (0.0s) |
+This application run was Compute-bound (based on main thread activity). A breakdown of this time and advice for investigating further is in the CPU section below.
+As very little time is spent in MPI calls, this code may also benefit from running at larger scales.
+
+CPU:
+A breakdown of the 100.0% (15.0s) CPU time:
+Single-core code:                            91.4%    (13.7s) |========|
+OpenMP regions:                               8.6%     (1.3s) ||
+Scalar numeric ops:                           0.5%     (0.1s) ||
+Vector numeric ops:                           0.4%     (0.1s) ||
+Memory accesses:                             37.5%     (5.6s) |===|
+Per-process performance is dominated by serial sections of computation. Use a profiler to find these or run with fewer threads and more processes.
+The per-core performance is memory-bound. Use a profiler to identify time-consuming loops and check their cache performance.
+
+MPI:
+A breakdown of the 0.0% (0.0s) MPI time:
+Time in collective calls:                     0.0%     (0.0s) |
+Time in point-to-point calls:                 0.0%     (0.0s) |
+Effective process collective rate:            0.00 bytes/s
+Effective process point-to-point rate:        0.00 bytes/s
+No time is spent in MPI operations. There's nothing to optimize here!
+
+I/O:
+A breakdown of the 0.0% (0.0s) I/O time:
+Time in reads:                                0.0%     (0.0s) |
+Time in writes:                               0.0%     (0.0s) |
+Effective process read rate:                  0.00 bytes/s
+Effective process write rate:                 0.00 bytes/s
+No time is spent in I/O operations. There's nothing to optimize here!
+
+OpenMP:
+A breakdown of the 8.6% (1.3s) time in OpenMP regions:
+Computation:                                 32.7%     (0.4s) |==|
+Synchronization:                             67.3%     (0.9s) |======|
+Physical core utilization:                   20.8%            |=|
+System load:                                 10.9%            ||
+Significant time is spent synchronizing threads in parallel regions. Check the affected regions with a profiler.
+This may be a sign of overly fine-grained parallelism (OpenMP regions in tight loops) or workload imbalance.
+
+Memory:
+Per-process memory usage may also affect scaling:
+Mean process memory usage:                    54.4 GiB
+Peak process memory usage:                    64.5 GiB
+Peak node memory usage:                       9.0%            ||
+The peak node memory usage is very low. Larger problem sets can be run before scaling to multiple nodes.
+
+Energy:
+A breakdown of how energy was used:
+CPU:                                      not supported
+System:                                   not supported
+Mean node power:                          not supported
+Peak node power:                              0.00 W
+Energy metrics are not available on this system.
+CPU metrics: Error reading /sys/class/powercap/intel-rapl:0/energy_uj: Permission denied
+

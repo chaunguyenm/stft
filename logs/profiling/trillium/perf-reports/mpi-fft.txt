@@ -1,0 +1,65 @@
+Command:        mpirun -n 8 ./main -p mpi -a fft -s 1048576 4096
+Resources:      8 nodes (192 physical, 192 logical cores per node)
+Memory:         755 GiB per node
+Tasks:          8 processes
+Machine:        tri1046
+Architecture:   x86_64
+CPU Family:     <unknown>
+Start time:     Fri. Jan. 2 03:23:46 2026
+Total time:     21 seconds
+Full path:      /scratch/chaung/project/src
+
+Summary: main is Compute-bound in this configuration
+Compute:                                     85.9%    (17.7s) |========|
+MPI:                                         14.1%     (2.9s) ||
+I/O:                                          0.0%     (0.0s) |
+This application run was Compute-bound (based on main thread activity). A breakdown of this time and advice for investigating further is in the CPU section below.
+As very little time is spent in MPI calls, this code may also benefit from running at larger scales.
+
+CPU:
+A breakdown of the 85.9% (17.7s) CPU time:
+Scalar numeric ops:                          14.3%     (2.5s) ||
+Vector numeric ops:                           7.9%     (1.4s) ||
+Memory accesses:                             60.2%    (10.7s) |=====|
+The per-core performance is memory-bound. Use a profiler to identify time-consuming loops and check their cache performance.
+Little time is spent in vectorized instructions. Check the compiler's vectorization advice to see why key loops could not be vectorized.
+
+MPI:
+A breakdown of the 14.1% (2.9s) MPI time:
+Time in collective calls:                    40.7%     (1.2s) |===|
+Time in point-to-point calls:                59.3%     (1.7s) |=====|
+Effective process collective rate:            0.00 bytes/s
+Effective process point-to-point rate:        8.68 GB/s
+
+I/O:
+A breakdown of the 0.0% (0.0s) I/O time:
+Time in reads:                                0.0%     (0.0s) |
+Time in writes:                               0.0%     (0.0s) |
+Effective process read rate:                  0.00 bytes/s
+Effective process write rate:                 0.00 bytes/s
+No time is spent in I/O operations. There's nothing to optimize here!
+
+Threads:
+A breakdown of how multiple threads were used:
+Computation:                                100.0%  (2063.2s) |=========|
+Synchronization:                              0.0%     (0.0s) |
+Physical core utilization:                    0.5%            ||
+System load:                                  0.5%            ||
+Physical core utilization is low. Try increasing the number of threads or processes to improve performance.
+
+Memory:
+Per-process memory usage may also affect scaling:
+Mean process memory usage:                    56.9 GiB
+Peak process memory usage:                    64.0 GiB
+Peak node memory usage:                      10.0%            ||
+The peak node memory usage is very low. Running with fewer MPI processes and more data on each process may be more efficient.
+
+Energy:
+A breakdown of how energy was used:
+CPU:                                      not supported
+System:                                   not supported
+Mean node power:                          not supported
+Peak node power:                              0.00 W
+Energy metrics are not available on this system.
+CPU metrics: Error reading /sys/class/powercap/intel-rapl:0/energy_uj: Permission denied
+
