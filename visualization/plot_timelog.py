@@ -4,13 +4,25 @@ import re
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 import numpy as np
 
-from plot_constants import COLOR_CYCLE_SIZE, TRILLIUM_TIMELOG_BENCHMARKS as BENCHMARKS
+from plot_constants import COLOR_CYCLE_SIZE, NIAGARA_TIMELOG_BENCHMARKS as BENCHMARKS
 
 
 CURRENT_COLOR = 0
+CURRENT_PATTERN = 0
+
+LINE_PATTERNS = [
+    {"linestyle": "-", "marker": None},
+    {"linestyle": "--", "marker": None},
+    {"linestyle": ":", "marker": None},
+    {"linestyle": "-.", "marker": None},
+    {"linestyle": None, "marker": "o"},
+    {"linestyle": None, "marker": "^"},
+    {"linestyle": None, "marker": "s"},
+    {"linestyle": None, "marker": "*"},
+]
 
 
 def get_color() -> str:
@@ -20,6 +32,15 @@ def get_color() -> str:
     color_name = f'C{CURRENT_COLOR % COLOR_CYCLE_SIZE}'
     CURRENT_COLOR += 1
     return color_name
+
+
+def get_line_pattern() -> str:
+    """Get the current line/marker pattern and move to the next pattern.
+    """
+    global CURRENT_PATTERN
+    pattern = LINE_PATTERNS[CURRENT_PATTERN % len(LINE_PATTERNS)]
+    CURRENT_PATTERN += 1
+    return pattern
 
 
 def parse_filename(fname: str, parallel_level: str) -> int | tuple[int] | None:
@@ -178,11 +199,13 @@ def plot_ideal_2d(scaling_type: str, ax: plt.Axes, tasks: list[int]) -> None:
         ax.plot(tasks, [1]*len(tasks), linestyle=":", color="lightgray")
 
 
-def plot_one_2d(plot_type: str, ax: plt.Axes, color: str,
+def plot_one_2d(plot_type: str, ax: plt.Axes, color: str, pattern: dict,
                 data: dict, tasks: list[tuple[int, int]], means: np.ndarray,
                 stds: np.ndarray, speedup: np.ndarray) -> None:
     """Plot a single run in 2D (for OpenMP and MPI parallel levels).
     """
+    linestyle = pattern["linestyle"]
+    marker = pattern["marker"]
     if plot_type == "runtime":
         # Plot scatter points for actual runtime
         for t in tasks:
@@ -194,10 +217,11 @@ def plot_one_2d(plot_type: str, ax: plt.Axes, color: str,
         plt.boxplot(box_data, positions=tasks, widths=0.6, patch_artist=True,
                     boxprops=dict(facecolor=color, alpha=0.3), medianprops=dict(color=color))
         # Plot average runtime
-        plt.plot(tasks, means, color=color)
+        plt.plot(tasks, means, color=color, linestyle=linestyle, marker=marker)
     else:
         # Plot actual speedup
-        ax.plot(tasks, speedup, color=color)
+        ax.plot(tasks, speedup, color=color,
+                linestyle=linestyle, marker=marker)
 
 
 def plot_all_2d(parallel_level: str, scaling_type: str, plot_type: str,
@@ -217,9 +241,12 @@ def plot_all_2d(parallel_level: str, scaling_type: str, plot_type: str,
 
         # Plot
         color = get_color()
+        pattern = get_line_pattern()
         set_axis_limit(ax, xlim=limits['xlim'])
-        plot_one_2d(plot_type, ax, color, data, tasks, means, stds, speedup)
-        patches.append(Patch(facecolor=color, label=label))
+        plot_one_2d(plot_type, ax, color, pattern,
+                    data, tasks, means, stds, speedup)
+        patches.append(Line2D([0], [0], color=color, linestyle=pattern["linestyle"] or "",
+                       marker=pattern["marker"] or "", label=label, ))
 
     # Plot ideal speedup
     if plot_type == 'speedup':
@@ -252,11 +279,14 @@ def plot_ideal_3d(scaling_type: str, ax: plt.Axes, tasks: list[tuple[int]], max_
     ax.set_zlim(0, max_speedup*2)
 
 
-def plot_one_3d(plot_type: str, ax: plt.Axes, color: str,
+def plot_one_3d(plot_type: str, ax: plt.Axes, color: str, pattern: dict,
                 data: dict, tasks: list[tuple[int, int]], means: np.ndarray,
                 stds: np.ndarray, speedup: np.ndarray) -> None:
     """Plot a single run in 3D (for hybrid parallel level).
     """
+    linestyle = pattern["linestyle"]
+    marker = pattern["marker"]
+
     procs = np.array([t[0] for t in tasks])
     threads = np.array([t[1] for t in tasks])
 
@@ -275,25 +305,27 @@ def plot_one_3d(plot_type: str, ax: plt.Axes, color: str,
         for p in np.unique(procs):
             mask = procs == p
             ax.errorbar(procs[mask], threads[mask], means[mask],
-                        yerr=stds[mask], capsize=4, color=color)
+                        yerr=stds[mask], capsize=4, color=color, linestyle=linestyle, marker=marker)
 
         # Connect same number of threads
         for t in np.unique(threads):
             mask = threads == t
             ax.errorbar(procs[mask], threads[mask], means[mask],
-                        yerr=stds[mask], capsize=4, color=color)
+                        yerr=stds[mask], capsize=4, color=color, linestyle=linestyle, marker=marker)
 
     # Plot speedup
     else:
         # Connect same number of processes
         for p in np.unique(procs):
             mask = procs == p
-            ax.plot(procs[mask], threads[mask], speedup[mask], color=color)
+            ax.plot(procs[mask], threads[mask], speedup[mask],
+                    color=color, linestyle=linestyle, marker=marker)
 
         # Connect same number of threads
         for t in np.unique(threads):
             mask = threads == t
-            ax.plot(procs[mask], threads[mask], speedup[mask], color=color)
+            ax.plot(procs[mask], threads[mask], speedup[mask],
+                    color=color, linestyle=linestyle, marker=marker)
 
 
 def plot_all_3d(parallel_level: str, scaling_type: str, plot_type: str,
@@ -315,9 +347,12 @@ def plot_all_3d(parallel_level: str, scaling_type: str, plot_type: str,
 
         # Plot
         color = get_color()
+        pattern = get_line_pattern()
         set_axis_limit(ax, xlim=limits['xlim'], ylim=limits['ylim'])
-        plot_one_3d(plot_type, ax, color, data, tasks, means, stds, speedup)
-        patches.append(Patch(facecolor=color, label=label))
+        plot_one_3d(plot_type, ax, color, pattern,
+                    data, tasks, means, stds, speedup)
+        patches.append(Line2D([0], [0], color=color, linestyle=pattern["linestyle"] or "",
+                       marker=pattern["marker"] or "", label=label, ))
 
     # Plot ideal speedup
     if plot_type == 'speedup':

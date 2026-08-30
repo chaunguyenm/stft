@@ -6,12 +6,24 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 
 from plot_constants import COLOR_CYCLE_SIZE, NREPEATS, TRILLIUM_MEMLOG_BENCHMARKS as BENCHMARKS
 
 
 CURRENT_COLOR = 0
+CURRENT_PATTERN = 0
+
+LINE_PATTERNS = [
+    {"linestyle": "-", "marker": None},
+    {"linestyle": "--", "marker": None},
+    {"linestyle": ":", "marker": None},
+    {"linestyle": "-.", "marker": None},
+    {"linestyle": None, "marker": "o"},
+    {"linestyle": None, "marker": "^"},
+    {"linestyle": None, "marker": "s"},
+    {"linestyle": None, "marker": "*"},
+]
 
 
 def get_color() -> str:
@@ -21,6 +33,15 @@ def get_color() -> str:
     color_name = f'C{CURRENT_COLOR % COLOR_CYCLE_SIZE}'
     CURRENT_COLOR += 1
     return color_name
+
+
+def get_line_pattern() -> str:
+    """Get the current line/marker pattern and move to the next pattern.
+    """
+    global CURRENT_PATTERN
+    pattern = LINE_PATTERNS[CURRENT_PATTERN % len(LINE_PATTERNS)]
+    CURRENT_PATTERN += 1
+    return pattern
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -173,26 +194,33 @@ def plot_memory(ax: plt.Axes, parallel_level, verbose, input_dirs, labels):
     if parallel_level == 'omp' or parallel_level == 'mpi':
         for tasks, peaks, lab in zip(tasks_list, peaks_list, labels):
             color = get_color()
+            pattern = get_line_pattern()
             values = [peaks[t] for t in tasks]
-            ax.plot(tasks, values)
-            patches.append(Patch(facecolor=color, label=lab))
+            ax.plot(
+                tasks, values, linestyle=pattern["linestyle"] or "", marker=pattern["marker"] or "")
+            patches.append(Line2D([0], [0], color=color, linestyle=pattern["linestyle"] or "",
+                                  marker=pattern["marker"] or "", label=lab, ))
     else:
         for tasks, peaks, lab in zip(tasks_list, peaks_list, labels):
             color = get_color()
+            pattern = get_line_pattern()
             procs = np.array([t[0] for t in tasks])
             threads = np.array([t[1] for t in tasks])
             values = np.array([peaks[t] for t in tasks])
             # Connect same number of processes
             for p in np.unique(procs):
                 mask = procs == p
-                ax.plot(procs[mask], threads[mask], values[mask], color=color)
+                ax.plot(procs[mask], threads[mask], values[mask], color=color,
+                        linestyle=pattern["linestyle"] or "", marker=pattern["marker"] or "")
 
             # Connect same number of threads
             for t in np.unique(threads):
                 mask = threads == t
-                ax.plot(procs[mask], threads[mask], values[mask], color=color)
+                ax.plot(procs[mask], threads[mask], values[mask], color=color,
+                        linestyle=pattern["linestyle"] or "", marker=pattern["marker"] or "")
 
-            patches.append(Patch(facecolor=color, label=lab))
+            patches.append(Line2D([0], [0], color=color, linestyle=pattern["linestyle"] or "",
+                                  marker=pattern["marker"] or "", label=lab, ))
     ax.legend(handles=patches)
 
 
