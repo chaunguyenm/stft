@@ -60,6 +60,15 @@ Simple Python scripts that generate visualizations from benchmarking results.
    python plot_memlog.py -l omp -s strong -i ../logs/scaling/niagara/strong-scaling/memlog_12380
    ``` 
 
+### Profiling of runtime
+
+Plot the breakdown of runtime by its purpose. The default input directory can be
+overridden by providing an input. The report of each setting should be named
+in the format `<parallel_level(omp/mpi/hybrid)>-<algorithm(fft/qpff)>.txt`.
+```sh
+python plot_profiling.py -i ../logs/profiling/trillium/perf-reports/
+```
+
 **Note:**
 
 * `plot_constants.py` defines the input for comparison plots.
