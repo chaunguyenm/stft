@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 import numpy as np
 
-from plot_constants import COLOR_CYCLE_SIZE, NIAGARA_TIMELOG_BENCHMARKS as BENCHMARKS
+from plot_constants import COLOR_CYCLE_SIZE, TRILLIUM_TIMELOG_BENCHMARKS as BENCHMARKS
 
 
 CURRENT_COLOR = 0
@@ -18,10 +18,10 @@ LINE_PATTERNS = [
     {"linestyle": "--", "marker": None},
     {"linestyle": ":", "marker": None},
     {"linestyle": "-.", "marker": None},
-    {"linestyle": None, "marker": "o"},
-    {"linestyle": None, "marker": "^"},
-    {"linestyle": None, "marker": "s"},
-    {"linestyle": None, "marker": "*"},
+    {"linestyle": "-", "marker": "o"},
+    {"linestyle": "-", "marker": "^"},
+    {"linestyle": "-", "marker": "s"},
+    {"linestyle": "-", "marker": "*"},
 ]
 
 
@@ -121,13 +121,16 @@ def compute_limits(data: dict, verbose: bool) -> dict:
     if len(ks) < 1:
         return limits
     if isinstance(ks[0], int):
-        limits['xlim'] = [ks[0], ks[-1]]
+        xpad = 0.08 * (ks[-1] - ks[0])
+        limits["xlim"] = [ks[0] - xpad, ks[-1] + xpad]
         if verbose:
             print(f'Limits of tasks:')
             print(f'\txlim=[{ks[0]},{ks[-1]}]')
     else:
-        limits['xlim'] = [ks[0][0], ks[-1][0]]
-        limits['ylim'] = [ks[0][1], ks[-1][-1]]
+        xpad = 0.08 * (ks[-1][0] - ks[0][0])
+        ypad = 0.08 * (ks[-1][-1] - ks[0][1])
+        limits['xlim'] = [ks[0][0] - xpad, ks[-1][0] + xpad]
+        limits['ylim'] = [ks[0][1] - ypad, ks[-1][-1] + ypad]
         if verbose:
             print(f'Limits of tasks:')
             print(
@@ -168,7 +171,7 @@ def compute_speedup(tasks: list[int | tuple[int, int]], means: np.ndarray, base_
 def create_figure(plot_type: str, parallel_level: str) -> tuple[plt.Figure, plt.Axes]:
     """Create a figure based on type and parallel.
     """
-    fig = plt.figure()
+    fig = plt.figure(layout="constrained")
     if parallel_level == "hybrid":
         ax = fig.add_subplot(projection="3d")
         ax.set_xlabel("Processes")
@@ -259,6 +262,11 @@ def plot_all_2d(parallel_level: str, scaling_type: str, plot_type: str,
 
     # Add legend
     ax.legend(handles=patches)
+
+    # Add padding for alternate x-labels
+    # for i, label in enumerate(ax.get_xticklabels()):
+    #     if i % 2 == 1:
+    #         label.set_y(-0.05)
 
 
 def plot_ideal_3d(scaling_type: str, ax: plt.Axes, tasks: list[tuple[int]], max_speedup: float) -> None:
@@ -385,6 +393,7 @@ def main():
                     args.verbose, ax, dirs, labels)
 
     if args.output_file:
+        # ax.set_box_aspect(None, zoom=0.85)
         plt.savefig(args.output_file, format="pdf")
     else:
         plt.show()
