@@ -2,6 +2,7 @@ import argparse
 from collections import defaultdict
 import re
 import os
+import numbers
 
 import numpy as np
 import pandas as pd
@@ -19,10 +20,10 @@ LINE_PATTERNS = [
     {"linestyle": "--", "marker": None},
     {"linestyle": ":", "marker": None},
     {"linestyle": "-.", "marker": None},
-    {"linestyle": None, "marker": "o"},
-    {"linestyle": None, "marker": "^"},
-    {"linestyle": None, "marker": "s"},
-    {"linestyle": None, "marker": "*"},
+    {"linestyle": "-", "marker": "o"},
+    {"linestyle": "-", "marker": "^"},
+    {"linestyle": "-", "marker": "s"},
+    {"linestyle": "-", "marker": "*"},
 ]
 
 
@@ -180,6 +181,51 @@ def create_figure(parallel_level: str, input_dir: str | None) -> tuple[plt.Figur
     return fig, ax
 
 
+def compute_limits(tasks_list: list, verbose: bool) -> dict:
+    limits = defaultdict(list)
+
+    if len(tasks_list) < 1:
+        return limits
+
+    xmin = min([sorted(tasks)[0] for tasks in tasks_list if len(
+        tasks) > 0 and isinstance(tasks[0], numbers.Integral)], default=-1)
+    xmax = max([sorted(tasks)[-1] for tasks in tasks_list if len(tasks)
+                > 0 and isinstance(tasks[0], numbers.Integral)], default=-1)
+    xpad = 0.08 * (xmax - xmin)
+    limits["xlim"] = (xmin - xpad, xmax + xpad)
+
+    if verbose:
+        print(f'Limits of tasks:')
+        print(f'\txlim=[{xmin},{xmax}]')
+
+    if xmin == -1 or xmax == -1:
+        xmin = min([sorted(tasks)[0][0] for tasks in tasks_list if len(
+            tasks) > 0], default=-1)
+        xmax = max([sorted(tasks)[-1][0] for tasks in tasks_list if len(tasks)
+                    > 0], default=-1)
+        ymin = min([sorted(tasks)[0][1] for tasks in tasks_list if len(
+            tasks) > 0], default=-1)
+        ymax = max([sorted(tasks)[-1][-1] for tasks in tasks_list if len(
+                    tasks) > 0], default=-1)
+        xpad = 0.08 * (xmax - xmin)
+        ypad = 0.08 * (ymax - ymin)
+        limits['xlim'] = [xmin - xpad, xmax + xpad]
+        limits['ylim'] = [ymin - ypad, ymin + ypad]
+        if verbose:
+            print(f'Limits of tasks:')
+            print(f'\txlim=[{xmin},{xmax}], ylim=[{ymin},{ymax}]')
+    return limits
+
+
+def set_axis_limit(ax: plt.Axes, xlim: list[int] | None = None, ylim: list[int] | None = None, zlim: list[int] | None = None) -> None:
+    if xlim is not None and len(xlim) == 2:
+        ax.set_xlim(left=xlim[0], right=xlim[1])
+    if ylim is not None and len(ylim) == 2:
+        ax.set_ylim(bottom=ylim[0], top=ylim[1])
+    if zlim is not None and len(zlim) == 2:
+        ax.set_zlim(bottom=zlim[0], top=zlim[1])
+
+
 def plot_memory(ax: plt.Axes, parallel_level, verbose, input_dirs, labels):
     rss_list, tasks_list, peaks_list = [], [], []
 
@@ -189,6 +235,9 @@ def plot_memory(ax: plt.Axes, parallel_level, verbose, input_dirs, labels):
         rss_list.append(rss)
         tasks_list.append(tasks)
         peaks_list.append(peaks)
+
+    limits = compute_limits(tasks_list, verbose)
+    set_axis_limit(limits)
 
     patches = []
     if parallel_level == 'omp' or parallel_level == 'mpi':
