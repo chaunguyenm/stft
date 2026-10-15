@@ -1,0 +1,470 @@
+\documentclass[8pt]{beamer}
+\usetheme{default}
+\usecolortheme{seagull}
+\usefonttheme{structurebold}
+
+\setbeameroption{hide notes} % Only slides
+% \setbeameroption{show only notes} % Only notes
+% \setbeameroption{show notes on second screen=right} % Both
+
+\usepackage[style=authoryear, backend=bibtex]{biblatex}
+\addbibresource{refs.bib}
+
+\usepackage{pifont}
+% \usepackage{booktabs}
+% \usepackage{multirow}
+\usepackage{tikz}
+\usetikzlibrary{shapes.multipart,fit,matrix}
+\usepackage{graphicx}
+
+\title{A Comparative Study of Parallel Implementations of Short-Time Fourier Transform}
+\author{Minh Chau Nguyen \and Marcelo Ponce}
+\institute{Department of Mathematical and Computer Sciences\\
+University of Toronto Scarborough\\
+Toronto, Canada}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+\section{Introduction}
+\begin{frame}
+\frametitle{What is STFT?}
+\begin{itemize}
+    \item Fourier transform converts a signal from time domain into frequency
+    domain, describing which frequencies are present in the signal.
+    \item Short-time Fourier transform (STFT) describes which frequencies are
+    present in a signal and when they occur by dividing the signal into segments
+    and applying the Fourier transform to each segment.
+    \item Short-time Fourier transform has applications in speech and audio
+    processing as well as music and biomedical signal analysis. \footcite{Ozhan2022}
+\end{itemize}
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{figures/FMP_C8_F03.png}
+\end{center}
+
+\note[item]{For the purpose of this study, Fourier transform is a transform
+whose input is a function and whose output is a complex valued function
+of frequency. Typically, the input function represents a signal changing over
+time or space. The output function maps a frequency to a complex number that
+encapsulates the amplitude and phase of the wave. In other words, Fourier
+transform breaks down a function into its constituent periodic functions.}
+\note[item]{The Fourier transform is a integral over the whole real line. In the
+context of the input being a signal over time, this means that the Fourier
+transform cannot represent how the signal changes at each point in time. This is
+where the short-time Fourier transform comes in. The STFT divides the input
+signal into equal length, overlapping segments and applies the Fourier transform
+to each of these segments. For a mathematical definition, the STFT is a
+transform that takes a signal function and a window function and returns a
+function of time and frequency, representing a wave at a point in time.}
+\note[item]{In practice, many interesting signals are not stationary, meaning
+they change over time. STFT can be used in these cases to extract richer data
+about the input, which provides applications in musical and audio signal
+analysis as well as in medical field for brain waves or cardiac signals. A STFT
+can usually be visualized with a spectrogram, which is most often a heat map,
+where x-axis represents time, y-axis represents the frequencies, and the colors
+represent the strength of the frequencies.}
+\note[item]{One of my favourite applications of STFT is in harmonic percussive 
+source separation, where we want to decompose a given audio signal into two 
+parts: one consisting of the harmonic and another of the percussive events.
+Harmonic sounds are what we perceive as having pitch such as a melody, while
+percussive sounds are leaning towards rhythms such as a clap or a click. In a
+spectrogram, harmonic sounds are often characterized by a horizontal line as
+they are more stationary over time, while percussive sounds are often vertical
+lines as they are a burst across all frequencies at a single point in time. The
+idea behind harmonic percussive source separation is to apply time-frequency
+masks along horizontal and vertical directions to the spectrogram/STFT of an
+input to get the harmonic and percussive sounds.}
+\end{frame}
+
+\begin{frame}
+\frametitle{What are the parallel approaches to STFT?}
+There are three families of STFT architecture designs \footcite{7419878}:
+\begin{itemize}
+    \item \textbf{FFT-based:} apply Fast Fourier Transform (FFT) to each segment
+    \item \textbf{Iterative:} compute each segment from previous segment, new
+    and discarded samples of the current segment
+    \item \textbf{Feedforward:} reuse intermediate computations of the previous
+    segment's FFT and compute only new samples
+\end{itemize}
+Software implmentations typically follow an FFT-based routine: apply a window
+function to the input, execute FFT on a single segment, update result, then
+repeat. Some level of parallelization is built-in but only targets the FFT
+section.
+
+\note[item]{To understand how STFTs are computed in practice, we can look at the
+hardware designs. A study by Garrido categorized the designs into three groups.}
+\note[item]{The first group, here we will refer to as FFT-based approach,
+involves using several FFT modules in parallel. Each of these modules calculates
+all the STFT frequencies at a certain time instant. We will go in more details
+about FFT in a later section.}
+\note[item]{The second group, namely the iterative approach, works on each
+frequency, instead of each time point, in parallel. The values of each frequency
+is computed iteratively by updating the value at a time point with an incoming
+sample at the next time point.}
+\note[item]{The third group will be referred to as the feedforward approach. It
+calculates the Fourier transform of a segment by reusing the operations of
+previous segments to avoid redundant computations.}
+\note[item]{The reason why we are interested in hardware architectures is
+because in software implmenetations, we do not observe such a variety in the
+implementations of STFT. All of the popular libraries that we investigate,
+including MATLAB, librosa, scipy, and torch, apply a similar approach to the
+FFT-based design. These built-in routines obtain a signal frame from the input
+using a specified window function, then compute a classical FFT on the signal
+frame, and repeat for all frames of the input. There is some level of native
+parallelization offered by these libraries, for example, MATLAB runs
+multithreaded FFT and librosa uses vectorization. However, in general there is
+limited work on different parallelization techniques software wise.}
+\note[item]{We are taking the inspiration from the hardware designs and
+implementing the software versions of the FFT-based and the feedforward
+approaches. The iterative approach is out of scope, as it accumulates error over
+time and makes it difficult to verify the correctness of the algorithm.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Why study STFT?}
+\begin{itemize}
+    \item Use cases for STFT span various research and practical fields.
+    \item Parallel software implementations of STFT are not well studied and
+    applied in common use, particularly so compared to Fourier transform.
+\end{itemize}
+
+\note[item]{In short, the motivation for this study can be summarized with the
+following two points. First, we observe that STFT provides important information
+distinct from those revealed by the classic Fourier transform, and these data
+are widely applied in various fields. Second, study in STFT software
+implementations, particularly their parallel approaches, is scarce relative to
+that of Fourier transform. Commonly used mathematical and scientific libraries
+offer limited implementations and generally do not allow user-level
+configuration of parallelization.}
+\end{frame}
+
+\section{Methodology}
+\begin{frame}
+\frametitle{Which algorithms are compared?}
+The study provides serial and parallel implementations, including
+shared-memory, distributed-memory, and hybrid parallelization, of an FFT-based
+algorithm and a feedforward algorithm. The code, together with collected results
+and the visualization scripts used in this study are available on GitHub at 
+https://github.com/chaunguyenm/stft. \footcite{stft-repo}.
+
+\note[item]{The implementations in this study work on input signals where the
+size of a segment is a power of 2, the window function is a rectangular window,
+i.e., it simply takes a subarray of the input signal and does no other
+modification, and the hop size or the distance between the beginning of two
+consecutive segments is 1.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Serial FFT-based algorithm}
+\begin{itemize}
+    \item<1-> The algorithm uses a radix-2 decimation-in-time FFT implementation.
+    \par \input{figures/fft}
+    \item<18-> The algorithm applies FFT to each segment in order.
+    \par \input{figures/serial-fft}
+\end{itemize}
+
+\note[item]{For the serial FFT-based algorithm of STFT, this study uses a 
+standard radix-2 decimation-in-time FFT implementation. For those who are not
+familiar with FFT, it is an efficient algorithm to compute the discrete Fourier
+transform, reducing the number of computations needed from N squared to NlogN. It does
+this by taking advantage of the symmetry in the calculation of the transform and
+using a divide-and-conquer method. In the ideal scenario where the number of
+samples in the input signal, referred to as big N, is a power of 2, the input is
+split into even- and odd-indexed samples, and the transform is calculated on
+each of these smaller sequences before being combined to obtain the final
+result. Radix-2 here means we are assuming this ideal scenario of N being a
+perfect power of 2, and decimation-in-time means input samples are being
+rearranged in bit reversal order before calculating the transform, as opposed to
+decimation in frequency where the transform is calculated first then the result
+is rearranged.}
+\note[item]{The FFT implementation in this study uses a breadth-first traversal
+of the computational tree instead of the recursive divide-and-conquer method.
+The algorithm first does a bit reversal rearrangement of the input signal. Bit
+reversal is how the odd- and even-indexed signal samples are rearranged, where
+the index of a sample is represented in binary and then flipped so that the the
+most significant bit becomes the least significant. Then the algorithm builds 
+out the twiddle factor table, and iterates through each computational stage, 
+represented here as a different size. The operations can be visualized as shown,
+and the diagram obtained after the last stage is typically called a butterfly 
+diagram.}
+\note[item]{The serial implementation of the FFT-based STFT will apply the FFT
+algorithm described above to every segment of the input in order. In other
+words, it iterates through the input signal, takes the effective segment, and
+computes the discrete Fourier transform using the FFT algorithm, then combines
+the results.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Parallel FFT-based algorithm}
+\begin{itemize}
+    \item Shared-memory: Multiple threads apply FFTs to segments in parallel.
+    \item Distributed-memory: Multiple processes apply FFTs to an assigned
+    subarray and \texttt{MPI\_Send} to one process.
+\end{itemize}
+\begin{center}
+    \includegraphics[width=0.5\textwidth]{figures/parallel-fft}
+\end{center}
+
+\note[item]{With OpenMP, the FFT-based short-time Fourier transform algorithm 
+can perform FFT on each subarray and write the result to the final array in
+parallel.}
+\note[item]{The number of Fourier transforms are as evenly distributed as 
+possible across all processes. Each process extracts the subarrays whose 
+Fourier transforms it must compute, processes the computation using FFT then 
+sends the results to the root process. Rank 0 is responsible for receiving from
+each of the remaining processes and writes to the correct index of the returned
+array.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Serial feedforward algorithm}
+\textbf{Idea:} Reuse computations of the previous FFT and only incur
+computations involving new input. \footcite{7419878}
+\input{figures/butterfly}
+
+\note[item]{Here, we have an example of some 8-point Fourier transforms, 
+starting at index 0, 1, and 2 respectively. The simplified butterfly diagrams
+show us the computations needed for the FFT of each of these segments. From this
+combined image, we can see that there are many duplicate computations between
+two consecutive FFTs, and these computations will be recalculated in the 
+FFT-based approach. This is the idea behind the feedforward approach, where we
+will avoid redoing these computations and instead store and reuse them for
+consecutive FFTs.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Serial feedforward algorithm}
+\begin{itemize}
+    \item Compute the Fourier transform of the first segment and populate the buffer.
+    \item Iterate over the remaining segments in order, calculate only the new
+    computations required for the given segment's Fourier transform, and update the buffer.
+\end{itemize}
+\input{figures/ff}
+
+\note[item]{The algorithm first computes the Fourier transform for the first 
+segment starting at index 0. It then initializes the buffer with the
+computations of the first FFT. The buffer has size N/2 and is circular, meaning 
+when all the memory has been filled, it starts to be filled from the beginning.}
+\note[item]{For each of the remaining segments' Fourier transforms, it 
+calculates only the new operations of the butterfly diagaram. Here we have
+denoted the computations that can be reused in light gray. The first stage only
+requires 1 new butterfly of the new incoming sample. The second stage requires 2
+new butterfly computations and third stage four. After every stage, the buffer
+is updated, preparing for the next segment.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Parallel feedforward algorithm}
+\begin{itemize}
+    \item Shared-memory: Multiple threads compute $N/2$ Fourier transforms in
+    parallel using temporary input buffers. \footcite{dsp2019}
+    \item Distributed-memory: Multiple processes compute $N/2$ Fourier transforms in
+    parallel using temporary input buffers then \texttt{MPI\_Allgatherv} to
+    update their own buffers.
+\end{itemize}
+\begin{center}
+    \includegraphics[width=0.5\textwidth]{figures/parallel-ff}
+\end{center}
+
+\note[item]{The serial feedforward STFT algorithm described previously cannot be
+parallelized without modification. Since we are relying on the previous FFT
+butterfly to compute the current one, parallelization is out of the question.}
+\note[item]{To address this gap, Labao et al. proposed a quasi-parallel algorithm of 
+feedforward STFT algorithm, which uses three buffers: one to store the even
+and odd terms and two buffers for previous computations. By expanding the
+buffers to store more computations, we can compute the next N/2 butterflies in
+parallel instead of a single one like in the serial version.}
+\note[item]{Shared-memory: With OpenMP, the routine in which N/2 Fourier
+transforms are computed using temporary input buffer can be parallelized.}
+\note[item]{Distributed-memory: N/2 Fourier transforms are as evenly distributed
+as possible across all processes. Each process has its own copy of buffers, 
+computes the Fourier transforms it is responsible for then writes the result 
+in a local copy. All processes then do a gathering operation in which each 
+sends its results to every remaining process, which allows all of them to 
+correctly update their local buffers.}
+\end{frame}
+
+\begin{frame}
+\frametitle{How are they compared?}
+\begin{itemize}
+    \item Input data are self-generated double precision arrays. 
+    \item Profiling uses Linaro MAP with an input of signal size $2^{20}$ and
+    window size $2^{11}$ and with 8 processes and/or 40 threads.
+    \item Scaling analysis records runtime and memory usage. Time is measured by
+    GNU \texttt{time}, and memory is measured as Resident Set Size by
+    \texttt{ps}. Execution is done with $2^0$ to $2^7$ threads and/or $2^0$ to 
+    $2^3$ processes. Data are averaged over 5 runs.
+        \begin{itemize}
+            \item Strong scaling uses fixed input data.
+            \item Weak scaling features two settings: (1) increasing number of
+            Fourier transforms and (2) increasing window size.
+        \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Where are they evaluated?}
+\begin{itemize}
+    \item Trillium cluster: 241,056 CPU cores, NDR InfiniBand 1:1 interconnect
+    at 400 Gb/s, 34 PFLOPS of theoretical peak performance
+    \item Niagara/Teach cluster: 2,560 CPU cores, EDR Infiniband Dragonfly+, 6
+    PFLOPS of theoretical peak performance \footcite{scinet-niagara}
+\end{itemize}
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{figures/IMG_4308.JPG}
+\end{center}
+\end{frame}
+
+\section{Results}
+\begin{frame}
+\frametitle{What do we find?}
+\begin{itemize}
+    \item Runtime of FFT-based versus feedforward algorithms
+    \item Runtime variance of FFT-based versus feedforward algorithms
+    \item Speedup of FFT-based versus feedforward algorithms and shared-memory
+    versus distributed-memory parallel
+    \item Memory usage of FFT-based versus feedforward algorithms
+    \item Trillium versus Niagara/Teach clusters
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Runtime of FFT-based versus feedforward algorithms}
+The feedforward algorithm is faster for lower thread/process count but slower
+for higher thread/process count compared to the FFT-based algorithm.
+
+\begin{center}
+    \includegraphics[width=\textwidth]{figures/profiling_time_breakdown}
+\end{center}
+
+\note[item]{The better runtime observed at smaller parallel units for the feedforward
+approach is consistent with the fact that its theoretical time complexity is
+better than that of the FFT-based algorithm. However, at higher
+thread and process counts, the cost of synchronization incurred rises and 
+offsets this slight runtime advantage.}
+\note[item]{The FFT-based algorithm spends more time 
+in OpenMP, most of which is for computation (96.5\%), while the OpenMP regions 
+of the feedforward algorithm is dominated by synchronizationi (67.3\%). A similar
+explanation can be extended for the distributed-memory configurations: the
+majority of MPI regions in the FFT-based algorithm is point-to-point calls
+as opposed to collective calls in the feedforward algorithm.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Runtime variance of FFT-based versus feedforward algorithms}
+The feedforward algorithm has higher variation in runtime compared to the
+FFT-based algorithm, and variation is especially large for the feedforward 
+algorithm with multiprocessing.
+\begin{center}
+    \includegraphics[width=.45\textwidth]{figures/trillium/01-mpi.pdf}\hfill
+    \includegraphics[width=.45\textwidth]{figures/niagara/01-mpi.pdf}\hfill
+\end{center}
+
+\note[item]{The feedforward algorithm needs to orchestrate communication for every
+stage of a FFT computation while the FFT-based one only
+communicates once when all parallel units finish their computation. In addition,
+the communication in multiprocessing feedforward implementation is between every
+process and every remaining process.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Speedup of FFT-based versus feedforward algorithms and shared-memory
+    versus distributed-memory parallel}
+    In both strong scaling and weak scaling, FFT-based algorithm outperforms
+    feedforward algorithm, and MPI outperforms OpenMP with respect to speedup.
+\begin{center}
+    \includegraphics[width=.4\textwidth]{figures/trillium/03-ss-omp.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/03-ss-mpi.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/03-ws-omp.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/03-ws-mpi.pdf}\hfill
+\end{center}
+
+\note[item]{The FFT-based algorithm has a higher portion of parallelizable region
+as each FFT routine is done independent of one another while
+the feedforward algorithm has more serial regions in which buffers are updated
+and computations are reused, and thus, dependent on the previous iteration.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Memory usage of FFT-based versus feedforward algorithms}
+Peak memory usage of the feedforward algorithm is higher than that of the
+FFT-based algorithm, and peak memory usage of the MPI version is higher than
+that of the OpenMP version.
+\begin{center}
+    \includegraphics[width=.4\textwidth]{figures/trillium/04-ss-omp.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/04-ss-mpi.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/04-ws-omp.pdf}\hfill
+    \includegraphics[width=.4\textwidth]{figures/trillium/04-ws-mpi.pdf}\hfill
+\end{center}
+
+\note[item]{Feedforward uses more memory to store previous computations.}
+\note[item]{MPI uses more memory as each process has local copies of the buffers.}
+\end{frame}
+
+\begin{frame}
+\frametitle{Trillium versus Niagara/Teach clusters}
+All runs on Trillium cluster are faster than on Niagara/Teach cluster, but
+similar patterns are observed in both.
+\begin{center}
+    \includegraphics[width=.45\textwidth]{figures/trillium/01-omp.pdf}\hfill
+    \includegraphics[width=.45\textwidth]{figures/niagara/01-omp.pdf}\hfill
+\end{center}
+\end{frame}
+
+\section{Conclusion}
+\begin{frame}
+\frametitle{Summary}
+\begin{itemize}
+    \item The short-time Fourier transform reveals time-dependent information
+    about the constituent frequencies of an input signal, which has many
+    applications for non-stationary signals. However, its practical
+    implementations are limited in approach and parallelization techniques.
+    \item The FFT-based algorithm to compute STFT applies FFT to each subarray
+    of the input signal, which induces redundant computations for overlapping
+    segments. The feedforward algorithm only computes the new operations
+    required moving from one segment to the next.
+    \item A comparative analysis shows that the feedforward algorithm has better
+    runtime at smaller parallel unit counts but the FFT-based algorithm has
+    better efficiency. Memory usage and runtime variance are higher in the 
+    feedforward algorithm. Shared-memory parallelization has closer to ideal
+    speedup compared to distributed-memory.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{How can we improve?}
+\begin{itemize}
+    \item Extension to handle arbitrary window function, hop size, and window size
+    \item Resolution for integer overflow in MPI calls
+\end{itemize}
+
+\note[item]{The implementations in this paper have several limitations. First, they assume a
+rectangular window function and a hop size of 1. Second, the window size must
+be a power of two. The FFT-based algorithm can generally be extended to overcome
+these shortcomings. A frequency decomposing variant of the
+feedforward approach by Garrido has been proposed to allow arbitrary hop 
+sizes and different window functions.}
+\note[item]{The multiprocessing implementation of the feedforward algorithm has been tested
+with window size up to 2 to 18, but larger window size will crash the program
+due to integer overflow in MPI calls. This problem may be resolved by slicing 
+the data to be communicated, but this approach can potentially cause unbalanced 
+workload. Another solution is to use MPI-4 support for large datatypes and
+procedures that work with these large types to increase the limit of the window
+size; however, this was not tested as part of this study as MPI-4 was not
+available on the clusters used at the moment of completing our work.}
+\end{frame}
+
+\begin{frame}[t, allowframebreaks]
+\frametitle{References}
+\printbibliography[heading=none]
+\end{frame}
+
+\end{document}

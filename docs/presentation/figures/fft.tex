@@ -1,0 +1,771 @@
+\begin{tikzpicture}
+
+% ============================================================
+% Configuration
+% ============================================================
+
+\def\rowsep{0.5}
+
+% ============================================================
+% Helper macros
+% ============================================================
+
+% Stage nodes
+%
+% #1 = x position
+% #2 = overlay specification
+% #3 = node prefix
+% #4 = fill
+%
+\newcommand{\drawstage}[4]{%
+    \foreach \i in {0,...,7} {
+        \node<#2>[
+            circle,
+            fill=#4,
+            inner sep=0,
+            minimum size=.1cm
+        ] (#3\i) at (#1,-\i*\rowsep) {};
+    }
+}
+
+% Variable box
+%
+% #1 = overlay
+% #2 = node name
+% #3 = x
+% #4 = y
+% #5 = label
+% #6 = number of parts
+% #7 = fill specification
+% #8 = contents
+%
+\newcommand{\varbox}[8]{%
+    \node<#1>[
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=#6,
+        draw,
+        rectangle split part fill={#7},
+        label=left:{#5}
+    ] (#2) at (#3,#4) {#8};
+}
+
+% ============================================================
+% Input
+% ============================================================
+
+\only<1>{
+    \foreach \i in {0,...,7} {
+        \node (x\i) at (0,-\i*\rowsep) {$x[\i]$};
+    }
+}
+
+% ============================================================
+% Bit-reversed input
+%
+% Original indices:
+%
+%   0 -> 0
+%   1 -> 4
+%   2 -> 2
+%   3 -> 6
+%   4 -> 1
+%   5 -> 5
+%   6 -> 3
+%   7 -> 7
+% ============================================================
+
+\only<2->{
+    \node (xr0) at (0,0)       {$x[0]$};
+    \node (xr1) at (0,-0.5)    {$x[4]$};
+    \node (xr2) at (0,-1)      {$x[2]$};
+    \node (xr3) at (0,-1.5)    {$x[6]$};
+    \node (xr4) at (0,-2)      {$x[1]$};
+    \node (xr5) at (0,-2.5)    {$x[5]$};
+    \node (xr6) at (0,-3)      {$x[3]$};
+    \node (xr7) at (0,-3.5)    {$x[7]$};
+}
+
+% ============================================================
+% FFT stages
+% ============================================================
+
+\drawstage{1}{2-}{s1s_}{black}
+\drawstage{2}{3-}{s1e_}{white}
+
+\drawstage{2.25}{7-}{s2s_}{black}
+\drawstage{3.25}{8-}{s2e_}{white}
+
+\drawstage{3.5}{12-}{s3s_}{black}
+\drawstage{4.5}{13-}{s3e_}{white}
+
+% ============================================================
+% Starting connections
+% ============================================================
+
+\foreach \i in {0,...,7} {
+    \draw<2->[-] (xr\i) -- (s1s_\i);
+}
+\foreach \i in {0,...,7} {
+    \draw<7->[-] (s1e_\i) -- (s2s_\i);
+}
+\foreach \i in {0,...,7} {
+    \draw<12->[-] (s2e_\i) -- (s3s_\i);
+}
+
+% ============================================================
+% Stage 1: size = 2
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0
+% ------------------------------------------------------------
+
+\varbox{3-3}{size}{7.5}{0}{size}{3}
+    {gray!70,none,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{3-3}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{3-3}{jvar}{7.5}{-1}{j}{1}{gray!70}{
+    \nodepart{one}$0$
+}
+
+\varbox{3-3}{kvar}{7.5}{-1.5}{k}{1}{gray!70}{
+    \nodepart{one}$0$
+}
+
+\varbox{3-3}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<3->[-] (s1s_0) -- (s1e_0);
+\draw<3->[-] (s1s_0) -- (s1e_1);
+\draw<3->[-] (s1s_1) -- (s1e_0);
+\draw<3->[-] (s1s_1) -- node[midway, below] {\tiny $-1$} (s1e_1);
+\draw<3->[-] (xr1) -- node[midway, below] {\tiny $W_8^0$} (s1s_1);
+
+\node<3->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_0) {};
+\node<3->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_1) {};
+
+% ------------------------------------------------------------
+% i = 2
+% ------------------------------------------------------------
+
+\varbox{4-4}{size}{7.5}{0}{size}{3}
+    {gray!70,none,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{4-4}{ivar}{7.5}{-0.5}{i}{8}
+    {none,none,gray!70,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{4-4}{jvar}{7.5}{-1}{j}{1}{gray!70}{
+    \nodepart{one}$2$
+}
+
+\varbox{4-4}{kvar}{7.5}{-1.5}{k}{1}{gray!70}{
+    \nodepart{one}$0$
+}
+
+\varbox{4-4}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<4->[-] (s1s_2) -- (s1e_2);
+\draw<4->[-] (s1s_2) -- (s1e_3);
+\draw<4->[-] (s1s_3) -- (s1e_2);
+\draw<4->[-] (s1s_3) -- node[midway, below] {\tiny $-1$} (s1e_3);
+\draw<4->[-] (xr3) -- node[midway, below] {\tiny $W_8^0$} (s1s_3);
+
+\node<4->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_2) {};
+\node<4->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_3) {};
+
+% ------------------------------------------------------------
+% i = 4
+% ------------------------------------------------------------
+
+\varbox{5-5}{size}{7.5}{0}{size}{3}
+    {gray!70,none,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{5-5}{ivar}{7.5}{-0.5}{i}{8}
+    {none,none,none,none,gray!70,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{5-5}{jvar}{7.5}{-1}{j}{1}{gray!70}{
+    \nodepart{one}$4$
+}
+
+\varbox{5-5}{kvar}{7.5}{-1.5}{k}{1}{gray!70}{
+    \nodepart{one}$0$
+}
+
+\varbox{5-5}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<5->[-] (s1s_4) -- (s1e_4);
+\draw<5->[-] (s1s_4) -- (s1e_5);
+\draw<5->[-] (s1s_5) -- (s1e_4);
+\draw<5->[-] (s1s_5) -- node[midway, below] {\tiny $-1$} (s1e_5);
+\draw<5->[-] (xr5) -- node[midway, below] {\tiny $W_8^0$} (s1s_5);
+
+\node<5->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_4) {};
+\node<5->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_5) {};
+
+% ------------------------------------------------------------
+% i = 6
+% ------------------------------------------------------------
+
+\varbox{6-6}{size}{7.5}{0}{size}{3}
+    {gray!70,none,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{6-6}{ivar}{7.5}{-0.5}{i}{8}
+    {none,none,none,none,none,none,gray!70,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{6-6}{jvar}{7.5}{-1}{j}{1}{gray!70}{
+    \nodepart{one}$6$
+}
+
+\varbox{6-6}{kvar}{7.5}{-1.5}{k}{1}{gray!70}{
+    \nodepart{one}$0$
+}
+
+\varbox{6-6}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<6->[-] (s1s_6) -- (s1e_6);
+\draw<6->[-] (s1s_6) -- (s1e_7);
+\draw<6->[-] (s1s_7) -- (s1e_6);
+\draw<6->[-] (s1s_7) -- node[midway, below] {\tiny $-1$} (s1e_7);
+\draw<6->[-] (xr7) -- node[midway, below] {\tiny $W_8^0$} (s1s_7);
+
+\node<6->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_6) {};
+\node<6->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_7) {};
+
+% ============================================================
+% Stage 2: size = 4
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 0
+% ------------------------------------------------------------
+
+\varbox{8-8}{size}{7.5}{0}{size}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{8-8}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{8-8}{jvar}{7.5}{-1}{j}{2}{gray!70,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+}
+
+\varbox{8-8}{kvar}{7.5}{-1.5}{k}{2}{gray!70, none}{
+    \nodepart{one}$0$
+    \nodepart{two}$2$
+}
+
+\varbox{8-8}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<8->[-] (s2s_0) -- (s2e_0);
+\draw<8->[-] (s2s_0) -- (s2e_2);
+\draw<8->[-] (s2s_2) -- (s2e_0);
+\draw<8->[-] (s2s_2) -- node[midway, below] {\tiny $-1$} (s2e_2);
+\draw<8->[-] (s1e_2) -- node[midway, below] {\tiny $W_8^0$} (s2s_2);
+
+\node<8->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_0) {};
+\node<8->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_2) {};
+
+% ============================================================
+% Stage 2: size = 4
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 2
+% ------------------------------------------------------------
+
+\varbox{9-9}{size}{7.5}{0}{size}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{9-9}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{9-9}{jvar}{7.5}{-1}{j}{2}{none,gray!70}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+}
+
+\varbox{9-9}{kvar}{7.5}{-1.5}{k}{2}{none,gray!70}{
+    \nodepart{one}$0$
+    \nodepart{two}$2$
+}
+
+\varbox{9-9}{exp}{7.5}{-2.5}{exp}{4}
+    {none,none,gray!70,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<9->[-] (s2s_1) -- (s2e_1);
+\draw<9->[-] (s2s_1) -- (s2e_3);
+\draw<9->[-] (s2s_3) -- (s2e_1);
+\draw<9->[-] (s2s_3) -- node[midway, below] {\tiny $-1$} (s2e_3);
+\draw<9->[-] (s1e_3) -- node[midway, below] {\tiny $W_8^2$} (s2s_3);
+
+\node<9->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_1) {};
+\node<9->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_3) {};
+
+% ============================================================
+% Stage 2: size = 4
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 4, j = 4
+% ------------------------------------------------------------
+
+\varbox{10-10}{size}{7.5}{0}{size}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{10-10}{ivar}{7.5}{-0.5}{i}{8}
+    {none,none,none,none,gray!70,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{10-10}{jvar}{7.5}{-1}{j}{2}{gray!70,none}{
+    \nodepart{one}$4$
+    \nodepart{two}$5$
+}
+
+\varbox{10-10}{kvar}{7.5}{-1.5}{k}{2}{gray!70,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$2$
+}
+
+\varbox{10-10}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<10->[-] (s2s_4) -- (s2e_4);
+\draw<10->[-] (s2s_4) -- (s2e_6);
+\draw<10->[-] (s2s_6) -- (s2e_4);
+\draw<10->[-] (s2s_6) -- node[midway, below] {\tiny $-1$} (s2e_6);
+\draw<10->[-] (s1e_6) -- node[midway, below] {\tiny $W_8^0$} (s2s_6);
+
+\node<10->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_4) {};
+\node<10->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_6) {};
+
+% ============================================================
+% Stage 2: size = 4
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 4, j = 5
+% ------------------------------------------------------------
+
+\varbox{11-11}{size}{7.5}{0}{size}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{11-11}{ivar}{7.5}{-0.5}{i}{8}
+    {none,none,none,none,gray!70,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{11-11}{jvar}{7.5}{-1}{j}{2}{none,gray!70}{
+    \nodepart{one}$4$
+    \nodepart{two}$5$
+}
+
+\varbox{11-11}{kvar}{7.5}{-1.5}{k}{2}{none,gray!70}{
+    \nodepart{one}$0$
+    \nodepart{two}$2$
+}
+
+\varbox{11-11}{exp}{7.5}{-2.5}{exp}{4}
+    {none,none,gray!70,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<11->[-] (s2s_5) -- (s2e_5);
+\draw<11->[-] (s2s_5) -- (s2e_7);
+\draw<11->[-] (s2s_7) -- (s2e_5);
+\draw<11->[-] (s2s_7) -- node[midway, below] {\tiny $-1$} (s2e_7);
+\draw<11->[-] (s1e_7) -- node[midway, below] {\tiny $W_8^2$} (s2s_7);
+
+\node<11->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_5) {};
+\node<11->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_7) {};
+
+% ============================================================
+% Stage 3: size = 8
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 0
+% ------------------------------------------------------------
+
+\varbox{13-13}{size}{7.5}{0}{size}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{13-13}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{13-13}{jvar}{7.5}{-1}{j}{4}{gray!70,none,none,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{13-13}{kvar}{7.5}{-1.5}{k}{4}{gray!70,none,none,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{13-13}{exp}{7.5}{-2.5}{exp}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<13->[-] (s3s_0) -- (s3e_0);
+\draw<13->[-] (s3s_0) -- (s3e_4);
+\draw<13->[-] (s3s_4) -- (s3e_0);
+\draw<13->[-] (s3s_4) -- node[midway, below] {\tiny $-1$} (s3e_4);
+\draw<13->[-] (s2e_4) -- node[midway, below] {\tiny $W_8^0$} (s3s_4);
+
+\node<13->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_0) {};
+\node<13->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_4) {};
+
+% ============================================================
+% Stage 3: size = 8
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 1
+% ------------------------------------------------------------
+
+\varbox{14-14}{size}{7.5}{0}{size}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{14-14}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{14-14}{jvar}{7.5}{-1}{j}{4}{none,gray!70,none,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{14-14}{kvar}{7.5}{-1.5}{k}{4}{none,gray!70,none,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{14-14}{exp}{7.5}{-2.5}{exp}{4}
+    {none,gray!70,none,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<14->[-] (s3s_1) -- (s3e_1);
+\draw<14->[-] (s3s_1) -- (s3e_5);
+\draw<14->[-] (s3s_5) -- (s3e_1);
+\draw<14->[-] (s3s_5) -- node[midway, below] {\tiny $-1$} (s3e_5);
+\draw<14->[-] (s2e_5) -- node[midway, below] {\tiny $W_8^1$} (s3s_5);
+
+\node<14->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_1) {};
+\node<14->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_5) {};
+
+% ============================================================
+% Stage 3: size = 8
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 2
+% ------------------------------------------------------------
+
+\varbox{15-15}{size}{7.5}{0}{size}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{15-15}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{15-15}{jvar}{7.5}{-1}{j}{4}{none,none,gray!70,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{15-15}{kvar}{7.5}{-1.5}{k}{4}{none,none,gray!70,none}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{15-15}{exp}{7.5}{-2.5}{exp}{4}
+    {none,none,gray!70,none}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<15->[-] (s3s_2) -- (s3e_2);
+\draw<15->[-] (s3s_2) -- (s3e_6);
+\draw<15->[-] (s3s_6) -- (s3e_2);
+\draw<15->[-] (s3s_6) -- node[midway, below] {\tiny $-1$} (s3e_6);
+\draw<15->[-] (s2e_6) -- node[midway, below] {\tiny $W_8^2$} (s3s_6);
+
+\node<15->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_2) {};
+\node<15->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_6) {};
+
+% ============================================================
+% Stage 3: size = 8
+% ============================================================
+
+% ------------------------------------------------------------
+% i = 0, j = 3
+% ------------------------------------------------------------
+
+\varbox{16-16}{size}{7.5}{0}{size}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$2$
+        \nodepart{two}$4$
+        \nodepart{three}$8$
+    }
+
+\varbox{16-16}{ivar}{7.5}{-0.5}{i}{8}
+    {gray!70,none,none,none,none,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+        \nodepart{five}$4$
+        \nodepart{six}$5$
+        \nodepart{seven}$6$
+        \nodepart{eight}$7$
+    }
+
+\varbox{16-16}{jvar}{7.5}{-1}{j}{4}{none,none,none,gray!70}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{16-16}{kvar}{7.5}{-1.5}{k}{4}{none,none,none,gray!70}{
+    \nodepart{one}$0$
+    \nodepart{two}$1$
+    \nodepart{three}$2$
+    \nodepart{four}$3$
+}
+
+\varbox{16-16}{exp}{7.5}{-2.5}{exp}{4}
+    {none,none,none,gray!70}{
+        \nodepart{one}$W_8^0$
+        \nodepart{two}$W_8^1$
+        \nodepart{three}$W_8^2$
+        \nodepart{four}$W_8^3$
+    }
+
+\draw<16->[-] (s3s_3) -- (s3e_3);
+\draw<16->[-] (s3s_3) -- (s3e_7);
+\draw<16->[-] (s3s_7) -- (s3e_3);
+\draw<16->[-] (s3s_7) -- node[midway, below] {\tiny $-1$} (s3e_7);
+\draw<16->[-] (s2e_7) -- node[midway, below] {\tiny $W_8^3$} (s3s_7);
+
+\node<16->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_3) {};
+\node<16->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_7) {};
+
+% ============================================================
+% Output
+% ============================================================
+
+\foreach \i in {0,...,7} {
+    \node<17-> (X\i) at (5.5,-\i*\rowsep) {$X[\i]$};
+}
+\foreach \i in {0,...,7} {
+    \draw<17->[-] (s3e_\i) -- (X\i);
+}
+
+\end{tikzpicture}

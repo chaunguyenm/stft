@@ -1,0 +1,113 @@
+\begin{tikzpicture}
+    \node[anchor=west] (d1) at (0,0) {\dots};
+    \node[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill=none,
+    ] (input1) at (d1.east) {
+        \nodepart{one}$n$
+        \nodepart{two}$n+1$
+        \nodepart{three}$n+2$
+    };
+
+    \node[anchor=west] (d2) at (input1.east) {\dots};
+    \node[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill=none,
+    ] (input2) at (d2.east) {
+        \nodepart{one}$n+N-1$
+        \nodepart{two}$n+N$
+        \nodepart{three}$n+N+1$
+    };
+
+    \node[anchor=west] (d3) at (input2.east) {\dots};
+
+    % ------------------------------------------------------------
+    % Highlight
+    % ------------------------------------------------------------
+
+    % 1st FFT
+    \node<19-19>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill=gray!70,
+    ] (input1) at (d1.east) {
+        \nodepart{one}$n$
+        \nodepart{two}$n+1$
+        \nodepart{three}$n+2$
+    };
+    \node<19-19>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill={gray!70,none,none},
+    ] (input2) at (d2.east) {
+        \nodepart{one}$n+N-1$
+        \nodepart{two}$n+N$
+        \nodepart{three}$n+N+1$
+    };
+
+    % 2nd FFT
+    \node<20-20>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill={none,gray!70,gray!70},
+    ] (input1) at (d1.east) {
+        \nodepart{one}$n$
+        \nodepart{two}$n+1$
+        \nodepart{three}$n+2$
+    };
+    \node<20-20>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill={gray!70,gray!70,none},
+    ] (input2) at (d2.east) {
+        \nodepart{one}$n+N-1$
+        \nodepart{two}$n+N$
+        \nodepart{three}$n+N+1$
+    };
+
+    % 3rd FFT
+    \node<21-21>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill={none,none,gray!70},
+    ] (input1) at (d1.east) {
+        \nodepart{one}$n$
+        \nodepart{two}$n+1$
+        \nodepart{three}$n+2$
+    };
+    \node<21-21>[
+        anchor=west,
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=3,
+        draw,
+        rectangle split part fill=gray!70,
+    ] (input2) at (d2.east) {
+        \nodepart{one}$n+N-1$
+        \nodepart{two}$n+N$
+        \nodepart{three}$n+N+1$
+    };
+\end{tikzpicture}

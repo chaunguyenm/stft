@@ -1,0 +1,425 @@
+\begin{tikzpicture}
+
+\def\rowsep{0.5}
+
+% Stage nodes
+%
+% #1 = x position
+% #2 = overlay specification
+% #3 = node prefix
+% #4 = fill
+%
+\newcommand{\drawstage}[4]{%
+    \foreach \i in {0,...,7} {
+        \node<#2>[
+            circle,
+            fill=#4,
+            inner sep=0,
+            minimum size=.1cm
+        ] (#3\i) at (#1,-\i*\rowsep) {};
+    }
+}
+
+% Variable box
+%
+% #1 = overlay
+% #2 = node name
+% #3 = x
+% #4 = y
+% #5 = left label
+% #6 = number of parts
+% #7 = fill specification
+% #8 = contents
+% #9 = right label
+%
+\newcommand{\varbox}[9]{%
+    \node<#1>[
+        rectangle split,
+        rectangle split horizontal,
+        rectangle split parts=#6,
+        draw,
+        rectangle split part fill={#7},
+        label=left:{#5}, label=right:{#9}
+    ] (#2) at (#3,#4) {#8};
+}
+
+\varbox{1-}{i}{7.5}{0}{i}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+    }{\dots}
+\node at (8,0.5) {};
+
+% Input nodes
+\foreach \i in {0,...,7} {
+    \node[color=white] (x\i) at (0.5,-\i*\rowsep) {$x[\i]$};
+}
+
+% Stage nodes
+\drawstage{1}{1-}{s1s_}{gray!70}
+\drawstage{2}{1-}{s1e_}{gray!70}
+
+\drawstage{2.25}{1-}{s2s_}{gray!70}
+\drawstage{3.25}{1-}{s2e_}{gray!70}
+
+\drawstage{3.5}{1-}{s3s_}{gray!70}
+\drawstage{4.5}{1-}{s3e_}{gray!70}
+
+% Connecting lines representing computations that are reused
+\foreach \i in {0,...,5} {
+    \draw[draw=gray!70] (s1s_\i) -- (s1e_\i);
+    \draw[draw=gray!70] (s1e_\i) -- (s2s_\i);
+}
+\foreach \i in {0,...,3} {
+    \draw[draw=gray!70] (s2s_\i) -- (s2e_\i);
+    \draw[draw=gray!70] (s2e_\i) -- (s3s_\i);
+}
+\foreach \i in {0,2,4} {
+    \pgfmathtruncatemacro{\j}{\i+1}
+    \draw[draw=gray!70] (s1s_\i) -- (s1e_\j);
+    \draw[draw=gray!70] (s1s_\j) -- (s1e_\i);
+}
+\foreach \i in {0,1} {
+    \pgfmathtruncatemacro{\j}{\i+2}
+    \draw[draw=gray!70] (s2s_\i) -- (s2e_\j);
+    \draw[draw=gray!70] (s2s_\j) -- (s2e_\i);
+}
+
+% Buffer
+\matrix (buffer) [
+    matrix of nodes,
+    nodes in empty cells,
+    nodes={draw, anchor=center},
+    row sep=-\pgflinewidth,
+    column sep=-\pgflinewidth
+] at (7.5,-2.5) {
+    $x[4]$ & $\text{fft}_0[2][1]$ & $\text{fft}_0[4][2]$ \\
+    $x[5]$ & $\text{fft}_0[3][1]$ & $\text{fft}_0[5][2]$ \\
+    $x[6]$ & $\text{fft}_0[6][1]$ & $\text{fft}_0[6][2]$ \\
+    $x[7]$ & $\text{fft}_0[7][1]$ & $\text{fft}_0[7][2]$ \\
+};
+
+% ------------------------------------------------------------
+% s=1 count=1 k=0
+% ------------------------------------------------------------
+% loop variables
+\varbox{2-6}{s}{7.5}{-0.5}{s}{3}
+    {gray!70,none,none}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+
+\varbox{2-6}{k}{7.5}{-1}{k}{1}
+    {gray!70}{
+        \nodepart{one}$0$
+    }{}
+
+% xr: from last stage
+\node<3-> at (x7) {$x[8]$};
+\node<3->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1s_7) {};
+\draw<3->[-] (x7) -- node[midway, below] {\tiny $W_8^0$} (s1s_7);
+
+% from buffer
+\only<4->{
+    \fill[gray!70] (buffer-1-1.south west)
+        rectangle (buffer-1-1.north east);
+    \node at (buffer-1-1.center) {$x[4]$};
+}
+\node<4->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1s_6) {};
+
+% compute
+\draw<5-> (s1s_6) -- (s1e_6);
+\draw<5-> (s1s_7) -- (s1e_7);
+\draw<5-> (s1s_6) -- (s1e_7);
+\draw<5-> (s1s_7) -- (s1e_6);
+\node<5->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_6) {};
+\node<5->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s1e_7) {};
+\draw<5->[-] (s1s_7) -- node[midway, below] {\tiny $-1$} (s1e_7);
+
+% update buffer
+\only<6->{
+    \fill[black] (buffer-1-1.south west)
+        rectangle (buffer-1-1.north east);
+    \node[text=white] at (buffer-1-1.center) {$x[8]$};
+}
+
+% ------------------------------------------------------------
+% s=2 count=2 k=0
+% ------------------------------------------------------------
+% loop variables
+\varbox{7-11}{s}{7.5}{-0.5}{s}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+
+\varbox{7-11}{k}{7.5}{-1}{k}{2}
+    {gray!70,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+    }{}
+
+% xr: from last stage
+\draw<8-> (s1e_6) -- (s2s_6);
+\node<8->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2s_6) {};
+\draw<8->[-] (s1e_6) -- node[midway, below] {\tiny $W_8^0$} (s2s_6);
+
+% from buffer
+\only<9->{
+    \fill[gray!70] (buffer-1-2.south west)
+        rectangle (buffer-1-2.north east);
+    \node at (buffer-1-2.center) {$\text{fft}_0[2][1]$};
+}
+\node<9->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2s_4) {};
+
+% compute
+\draw<10-> (s2s_4) -- (s2e_4);
+\draw<10-> (s2s_6) -- (s2e_6);
+\draw<10-> (s2s_4) -- (s2e_6);
+\draw<10-> (s2s_6) -- (s2e_4);
+\node<10->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_4) {};
+\node<10->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_6) {};
+\draw<10->[-] (s2s_6) -- node[midway, below] {\tiny $-1$} (s2e_6);
+
+% update buffer
+\only<11->{
+    \fill[black] (buffer-1-2.south west)
+        rectangle (buffer-1-2.north east);
+    \node[text=white] at (buffer-1-2.center) {$\text{fft}_1[6][1]$};
+}
+
+% ------------------------------------------------------------
+% s=2 count=2 k=1
+% ------------------------------------------------------------
+% loop variables
+\varbox{12-16}{s}{7.5}{-0.5}{s}{3}
+    {none,gray!70,none}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+
+\varbox{12-16}{k}{7.5}{-1}{k}{2}
+    {none,gray!70}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+    }{}
+
+% xr: from last stage
+\draw<13-> (s1e_7) -- (s2s_7);
+\node<13->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2s_7) {};
+\draw<13->[-] (s1e_7) -- node[midway, below] {\tiny $W_8^2$} (s2s_7);
+
+% from buffer
+\only<14->{
+    \fill[gray!70] (buffer-2-2.south west)
+        rectangle (buffer-2-2.north east);
+    \node at (buffer-2-2.center) {$\text{fft}_0[3][1]$};
+}
+\node<14->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2s_5) {};
+
+% compute
+\draw<15-> (s2s_5) -- (s2e_5);
+\draw<15-> (s2s_7) -- (s2e_7);
+\draw<15-> (s2s_5) -- (s2e_7);
+\draw<15-> (s2s_7) -- (s2e_5);
+\node<15->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_5) {};
+\node<15->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s2e_7) {};
+\draw<15->[-] (s2s_7) -- node[midway, below] {\tiny $-1$} (s2e_7);
+
+% update buffer
+\only<16->{
+    \fill[black] (buffer-2-2.south west)
+        rectangle (buffer-2-2.north east);
+    \node[text=white] at (buffer-2-2.center) {$\text{fft}_1[7][1]$};
+}
+
+% ------------------------------------------------------------
+% s=3 count=4 k=0
+% ------------------------------------------------------------
+\varbox{17-21}{s}{7.5}{-0.5}{s}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+
+\varbox{17-21}{k}{7.5}{-1}{k}{4}
+    {gray!70,none,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+    }{}
+
+% xr: from last stage
+\draw<18-> (s2e_4) -- (s3s_4);
+\node<18->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_4) {};
+\draw<18->[-] (s2e_4) -- node[midway, below] {\tiny $W_8^0$} (s3s_4);
+
+% from buffer
+\only<19->{
+    \fill[gray!70] (buffer-1-3.south west)
+        rectangle (buffer-1-3.north east);
+    \node at (buffer-1-3.center) {$\text{fft}_0[4][2]$};
+}
+\node<19->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_0) {};
+
+% compute
+\draw<20-> (s3s_0) -- (s3e_0);
+\draw<20-> (s3s_4) -- (s3e_4);
+\draw<20-> (s3s_0) -- (s3e_4);
+\draw<20-> (s3s_4) -- (s3e_0);
+\node<20->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_0) {};
+\node<20->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_4) {};
+\draw<20->[-] (s3s_4) -- node[midway, below] {\tiny $-1$} (s3e_4);
+
+% update buffer
+\only<21->{
+    \fill[black] (buffer-1-3.south west)
+        rectangle (buffer-1-3.north east);
+    \node[text=white] at (buffer-1-3.center) {$\text{fft}_1[4][2]$};
+}
+
+% ------------------------------------------------------------
+% s=3 count=4 k=1
+% ------------------------------------------------------------
+\varbox{22-26}{s}{7.5}{-0.5}{s}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+\varbox{22-26}{k}{7.5}{-1}{k}{4}
+    {none,gray!70,none,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+    }{}
+
+% xr: from last stage
+\draw<23-> (s2e_5) -- (s3s_5);
+\node<23->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_5) {};
+\draw<23->[-] (s2e_5) -- node[midway, below] {\tiny $W_8^1$} (s3s_5);
+
+% from buffer
+\only<24->{
+    \fill[gray!70] (buffer-2-3.south west)
+        rectangle (buffer-2-3.north east);
+    \node at (buffer-2-3.center) {$\text{fft}_0[5][2]$};
+}
+\node<24->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_1) {};
+
+% compute
+\draw<25-> (s3s_1) -- (s3e_1);
+\draw<25-> (s3s_5) -- (s3e_5);
+\draw<25-> (s3s_1) -- (s3e_5);
+\draw<25-> (s3s_5) -- (s3e_1);
+\node<25->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_1) {};
+\node<25->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_5) {};
+\draw<25->[-] (s3s_5) -- node[midway, below] {\tiny $-1$} (s3e_5);
+
+% update buffer
+\only<26->{
+    \fill[black] (buffer-2-3.south west)
+        rectangle (buffer-2-3.north east);
+    \node[text=white] at (buffer-2-3.center) {$\text{fft}_1[5][2]$};
+}
+
+% ------------------------------------------------------------
+% s=3 count=4 k=2
+% ------------------------------------------------------------
+\varbox{27-31}{s}{7.5}{-0.5}{s}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+\varbox{27-31}{k}{7.5}{-1}{k}{4}
+    {none,none,gray!70,none}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+    }{}
+
+% xr: from last stage
+\draw<28-> (s2e_6) -- (s3s_6);
+\node<28->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_6) {};
+\draw<28->[-] (s2e_6) -- node[midway, below] {\tiny $W_8^2$} (s3s_6);
+
+% from buffer
+\only<29->{
+    \fill[gray!70] (buffer-3-3.south west)
+        rectangle (buffer-3-3.north east);
+    \node at (buffer-3-3.center) {$\text{fft}_0[6][2]$};
+}
+\node<29->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_2) {};
+
+% compute
+\draw<30-> (s3s_2) -- (s3e_2);
+\draw<30-> (s3s_6) -- (s3e_6);
+\draw<30-> (s3s_2) -- (s3e_6);
+\draw<30-> (s3s_6) -- (s3e_2);
+\node<30->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_2) {};
+\node<30->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_6) {};
+\draw<30->[-] (s3s_6) -- node[midway, below] {\tiny $-1$} (s3e_6);
+
+% update buffer
+\only<31->{
+    \fill[black] (buffer-3-3.south west)
+        rectangle (buffer-3-3.north east);
+    \node[text=white] at (buffer-3-3.center) {$\text{fft}_1[6][2]$};
+}
+
+% ------------------------------------------------------------
+% s=3 count=4 k=3
+% ------------------------------------------------------------
+\varbox{32-36}{s}{7.5}{-0.5}{s}{3}
+    {none,none,gray!70}{
+        \nodepart{one}$1$
+        \nodepart{two}$2$
+        \nodepart{three}$3$
+    }{}
+\varbox{32-36}{k}{7.5}{-1}{k}{4}
+    {none,none,none,gray!70}{
+        \nodepart{one}$0$
+        \nodepart{two}$1$
+        \nodepart{three}$2$
+        \nodepart{four}$3$
+    }{}
+
+% xr: from last stage
+\draw<33-> (s2e_7) -- (s3s_7);
+\node<33->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_7) {};
+\draw<33->[-] (s2e_7) -- node[midway, below] {\tiny $W_8^3$} (s3s_7);
+
+% from buffer
+\only<34->{
+    \fill[gray!70] (buffer-4-3.south west)
+        rectangle (buffer-4-3.north east);
+    \node at (buffer-4-3.center) {$\text{fft}_0[6][2]$};
+}
+\node<34->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3s_3) {};
+
+% compute
+\draw<35-> (s3s_3) -- (s3e_3);
+\draw<35-> (s3s_7) -- (s3e_7);
+\draw<35-> (s3s_3) -- (s3e_7);
+\draw<35-> (s3s_7) -- (s3e_3);
+\node<35->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_3) {};
+\node<35->[circle, fill=black, inner sep=0, minimum size=.1cm] at (s3e_7) {};
+\draw<35->[-] (s3s_7) -- node[midway, below] {\tiny $-1$} (s3e_7);
+
+% update buffer
+\only<36->{
+    \fill[black] (buffer-4-3.south west)
+        rectangle (buffer-4-3.north east);
+    \node[text=white] at (buffer-4-3.center) {$\text{fft}_1[7][2]$};
+}
+
+\end{tikzpicture}
